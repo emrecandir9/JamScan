@@ -4,6 +4,20 @@ These are actual GitHub settings, not files that Git automatically applies.
 The repository owner must save them on GitHub. Writing this guide alone does
 not protect `main`.
 
+## Verified repository status (2026-09-27)
+
+A classic rule for `main` has been saved. GitHub reports the branch as protected
+and requires **Mobile checks** and **Backend checks** for everyone. PR #1 was
+approved by Olena and merged. Do not create a duplicate protection rule.
+
+The detailed protection endpoint and collaborator list require authenticated
+access that was not available to this audit. Reopen the existing rule to
+confirm **Require approvals: 1** and the other settings in the table below;
+confirm each teammate has accepted repository access. The table describes the
+intended configuration, not a claim that every setting was independently read.
+
+See [S1-01.md](S1-01.md) for build, emulator, review, and merge evidence.
+
 ## 1. Confirm team access
 
 Open [Settings → Collaborators](https://github.com/emrecandir9/JamScan/settings/access).
