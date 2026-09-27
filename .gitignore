@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+
+# Logs
+*.log
