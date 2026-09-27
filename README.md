@@ -25,9 +25,11 @@ integrations, and local persistence belong to later tasks.
 
 The foundation was approved and merged through [PR #1](https://github.com/emrecandir9/JamScan/pull/1).
 Android and backend checks passed, the APK launched in an Android emulator,
-and `main` is protected with both CI checks required. Remaining team-access,
-protection-detail, and completion confirmations are tracked in
-[the S1-01 checklist](docs/S1-01.md).
+and `main` is protected with both CI checks required. Emre confirmed access
+for all four teammates, one required approval, prevention of bypassing, and
+the sprint-board update to Done. All S1-01 acceptance criteria are satisfied;
+only the final documentation PR needs review and merge. Evidence is recorded
+in [the S1-01 checklist](docs/S1-01.md).
 
 ## Repository structure
 

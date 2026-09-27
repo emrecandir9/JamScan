@@ -55,6 +55,25 @@ Replace `DEVICE_ID` with an Android device ID from `flutter devices`. The
 app should show **JamSCAN** and **Welcome to JamSCAN**. It does not call the
 backend yet; mobile and backend can be checked independently.
 
+## Run an existing APK on a Mac
+
+An APK runs on Android, so use Android Studio's emulator to test it on macOS.
+You do not need to rebuild the project or start the backend for this welcome screen.
+
+1. Open Android Studio and select **More Actions → Virtual Device Manager**,
+   or **Tools → Device Manager** with a project open.
+2. Create a virtual phone, select a compatible Android system image
+   (`arm64-v8a` on Apple Silicon), download it if necessary, and finish setup.
+3. Start the emulator and wait for its Android home screen.
+4. Drag `app-debug.apk` from `mobile/build/app/outputs/flutter-apk/` onto the
+   emulator screen. Alternatively, download and unzip `jamscan-debug-apk`
+   from a successful GitHub Actions run first.
+5. Open **JamSCAN** in the emulator's app list. Confirm the title **JamSCAN**
+   and message **Welcome to JamSCAN** appear.
+
+Emre completed this installation and launch check for S1-01. See the
+[acceptance evidence](S1-01.md). Screens beyond this welcome page are future work.
+
 ## Backend
 
 From the repository root, on macOS/Linux:
