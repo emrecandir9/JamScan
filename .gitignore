@@ -30,3 +30,16 @@ build/
 
 # Logs
 *.log
+
+# Python tooling and packaging
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+*.egg-info/
+
+# Android signing material
+*.jks
+*.keystore
+**/android/key.properties

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feature/**', 'fix/**', 'chore/**', 'docs/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Mobile checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: mobile/pubspec.yaml
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build apk --debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jamscan-debug-apk
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.lock
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pip install --no-deps -e .
+      - run: python -m pip check
+      - run: ruff format --check .
+      - run: ruff check .
+      - run: python -m pytest
+      - run: python -m build
+      - run: docker build -t jamscan-backend:ci .
+      - name: Verify container starts and serves health endpoint
+        shell: bash
+        run: |
+          docker run -d --name jamscan-backend -p 127.0.0.1:8000:8000 jamscan-backend:ci
+          trap 'docker logs jamscan-backend; docker rm -f jamscan-backend' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health > /tmp/health.json; then
+              python -c 'import json; assert json.load(open("/tmp/health.json")) == {"status": "ok"}'
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

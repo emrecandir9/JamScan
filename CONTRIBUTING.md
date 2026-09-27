@@ -1,111 +1,81 @@
 # Contributing to JamSCAN
 
-## Branching Strategy
+## Branches and commits
 
-The `main` branch contains the stable integrated version of JamSCAN.
+`main` is the stable integrated version. Do development on a separate branch
+for each task and open a pull request (PR) into `main`.
 
-Developers must not work directly on `main`.
+| Work | Branch example |
+| --- | --- |
+| Feature | `feature/S1-02-navigation` |
+| Bug fix | `fix/S1-03-camera-permission` |
+| Project maintenance | `chore/S1-01-repository-foundation` |
+| Documentation | `docs/S1-01-setup-guide` |
 
-Create a branch for each task.
+Use a short commit message that explains the change:
 
-### Branch Naming
-
-Features:
-
-feature/<story-id>-<description>
-
-Example:
-
-feature/S1-02-navigation
-
-Bug fixes:
-
-fix/<story-id>-<description>
-
-Example:
-
-fix/S1-03-camera-permission
-
-Maintenance:
-
-chore/<description>
-
-Example:
-
-chore/update-dependencies
-
-
-## Development Workflow
-
-1. Update local main:
-
-   git checkout main
-   git pull origin main
-
-2. Create a feature branch:
-
-   git checkout -b feature/S1-02-navigation
-
-3. Implement the task.
-
-4. Commit changes.
-
-5. Push the branch to GitHub.
-
-6. Open a Pull Request into `main`.
-
-7. At least one other team member reviews the Pull Request.
-
-8. Automated checks must pass.
-
-9. Merge the Pull Request into `main`.
-
-10. Delete the feature branch after merging.
-
-
-## Commit Convention
-
-Use short descriptive commit messages.
-
-Examples:
-
+```text
 feat: add navigation shell
-
 fix: handle denied camera permission
-
-docs: document development workflow
-
+docs: explain local setup
 test: add album model tests
-
 chore: configure GitHub Actions
+```
 
+Keep a PR focused on one task. Do not include unrelated formatting changes,
+generated build output, API keys, passwords, or signing keys.
 
-## Coding Conventions
+## Coding conventions
 
 ### Dart / Flutter
 
-- Follow standard Dart formatting.
-- Run `dart format .` before submitting a Pull Request.
-- Run `flutter analyze`.
-- Use meaningful class, method, and variable names.
-- Use `PascalCase` for classes.
-- Use `camelCase` for variables and methods.
-- Avoid very large widgets and functions.
+- Use `lower_snake_case.dart` for filenames, `PascalCase` for types, and
+  `camelCase` for methods and variables.
+- Let `dart format` handle formatting; use the shared `flutter_lints` rules.
+- Prefer small widgets/functions, clear names, and `const` where appropriate.
+- Keep UI separate from networking and storage as those features are added.
+- Keep `main.dart` focused on startup; put the application widget in `app.dart`.
+- Commit `pubspec.lock` so every teammate resolves the same dependencies.
+
+From `mobile/`, before opening a PR:
+
+```bash
+flutter pub get
+dart format lib test
+flutter analyze
+flutter test
+flutter build apk --debug
+```
 
 ### Python / FastAPI
 
-- Follow PEP 8 naming conventions.
-- Use `snake_case` for variables and functions.
-- Use `PascalCase` for classes.
-- Add type hints where practical.
-- Keep API routes and business logic separated as the backend grows.
+- Use `snake_case` for modules/functions/variables and `PascalCase` for classes.
+- Use four-space indentation, type hints, and Ruff formatting (88 columns).
+- Keep routes separate from service/integration logic when those modules grow.
+- Keep external API credentials in backend environment variables.
+- Add dependencies in `pyproject.toml`, then update the committed lock files
+  using the instructions in [SETUP.md](docs/SETUP.md#updating-dependencies).
 
-## Pull Requests
+From `backend/`, with the virtual environment activated:
 
-Every Pull Request must:
+```bash
+ruff format .
+ruff check .
+python -m pytest
+python -m build
+```
 
-- target `main`
-- correspond to a Sprint task
-- pass automated checks
-- be reviewed by at least one other team member
-- contain no passwords, API keys, or secrets
+## Reviews and merging
+
+1. Explain the story, changes, and validation in the PR template.
+2. Ask another team member to review. You cannot approve your own PR.
+3. Resolve feedback and discussion threads; push fixes to the same branch.
+4. Wait for `Mobile checks` and `Backend checks` to pass.
+5. Merge after at least one teammate approves. Prefer **Squash and merge**.
+6. Delete the merged task branch on GitHub and update your local `main`.
+
+New commits may invalidate an approval, so obtain a fresh review when needed.
+Never force-push to `main`. Do not disable protection to get a PR merged.
+
+See [TEAM_WORKFLOW.md](docs/TEAM_WORKFLOW.md) for the beginner walkthrough
+and [GITHUB_SETUP.md](docs/GITHUB_SETUP.md) for the settings that enforce it.
