@@ -1,29 +1,48 @@
 # JamSCAN
 
-JamSCAN is an Android mobile application for physical music collectors
-that allows users to identify albums, preview tracks, and manage a
-personal music collection.
+An Android application for physical music collectors, built with Flutter/Dart
+and a Python/FastAPI backend.
 
-## Technology Stack
+## Start here
 
-### Mobile
-- Flutter
-- Dart
-- Riverpod
+- [Set up and run the project](docs/SETUP.md)
+- [Work together on GitHub](docs/TEAM_WORKFLOW.md)
+- [Branch and coding conventions](CONTRIBUTING.md)
+- [Configure main-branch protection](docs/GITHUB_SETUP.md)
+- [S1-01 acceptance checklist](docs/S1-01.md)
 
-### Backend
-- Python
-- FastAPI
+## Current scope
 
-### External Services
-- Discogs API
-- Playback API
-- Visual recognition service
+This foundation implements **S1-01**: a shared project structure, a minimal
+Android application, a backend health endpoint, build checks, and collaboration
+guidelines. The app displays a single JamSCAN welcome screen. No API keys are
+needed to build or test it.
 
-## Repository Structure
+Navigation, camera/gallery access, album models, recognition, external API
+integrations, and local persistence belong to later tasks.
+
+## Repository structure
 
 ```text
-mobile/      Flutter mobile application
-backend/     FastAPI backend
-docs/        Project documentation
-.github/     GitHub workflows and templates
+mobile/
+  lib/          Flutter entry point and application widget
+  test/         Widget tests
+  android/      Android platform project
+backend/
+  app/          FastAPI application
+  tests/        API tests
+  Dockerfile    Backend development container
+docs/          Setup, collaboration, and acceptance documentation
+.github/
+  workflows/    Automated quality checks and build validation
+```
+
+Riverpod is the planned state-management library, and SQLite/Drift is the
+planned local-storage stack. Add them when the relevant story needs them.
+
+## Everyday workflow
+
+Update `main`, create a task branch, make and test changes, push the branch,
+then open a pull request into `main`. A teammate reviews it; merge once the
+review is approved and checks are green. See the step-by-step
+[team guide](docs/TEAM_WORKFLOW.md).
