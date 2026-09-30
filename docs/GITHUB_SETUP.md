@@ -4,6 +4,23 @@ These are actual GitHub settings, not files that Git automatically applies.
 The repository owner must save them on GitHub. Writing this guide alone does
 not protect `main`.
 
+## Verified repository status (2026-09-27)
+
+A classic rule for `main` has been saved. GitHub reports the branch as protected
+and requires **Mobile checks** and **Backend checks** for everyone. PR #1 was
+approved by Olena and merged. Do not create a duplicate protection rule.
+
+Emre confirmed that all four team members have accepted repository access,
+**Require approvals: 1** is enabled, and bypassing is prevented. These details
+are owner-confirmed; the full protection and collaborator endpoints were not
+available to the audit. The remaining options in the table are recommended
+maintenance settings, not claims that every option was independently read.
+
+Setup is complete for S1-01. The steps below are retained as a reference for
+maintaining or recreating the configuration; do not repeat completed setup.
+
+See [S1-01.md](S1-01.md) for build, emulator, review, and merge evidence.
+
 ## 1. Confirm team access
 
 Open [Settings → Collaborators](https://github.com/emrecandir9/JamScan/settings/access).
@@ -14,7 +31,7 @@ passwords/tokens to each other.
 
 ## 2. Let CI register the checks
 
-Push the S1-01 task branch and open its PR. In the
+When configuring checks for a new repository, push a task branch and open its PR. In the
 [Actions tab](https://github.com/emrecandir9/JamScan/actions), wait for the
 `CI` workflow to finish successfully. GitHub needs a recent run to offer the
 check names in the protection settings.
@@ -51,7 +68,7 @@ Protection is supported for public repositories on GitHub Free.
 ## 4. Verify the result
 
 1. Reopen the saved rule and confirm the exact branch pattern and settings.
-2. Open the S1-01 PR; without a teammate approval, GitHub should block merging
+2. Open a new PR; without a teammate approval, GitHub should block merging
    and show that review is required.
 3. Confirm both named checks appear and must pass.
 4. Keep a screenshot of the saved rule and successful checks as course evidence.
