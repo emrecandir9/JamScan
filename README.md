@@ -10,6 +10,7 @@ and a Python/FastAPI backend.
 - [Branch and coding conventions](CONTRIBUTING.md)
 - [Configure main-branch protection](docs/GITHUB_SETUP.md)
 - [S1-01 acceptance checklist](docs/S1-01.md)
+- [S1-05 API validation and live evidence](docs/S1-05.md)
 
 ## Current scope
 
@@ -20,6 +21,11 @@ needed to build or test it.
 
 Navigation, camera/gallery access, album models, recognition, external API
 integrations, and local persistence belong to later tasks.
+
+S1-05 adds backend development tools to validate Discogs metadata and iTunes
+HTTPS previews. Live Discogs authentication, search, and metadata checks and
+iTunes search/preview checks have passed. Visual search is deferred to its
+separate task. These tools do not add application endpoints or mobile playback.
 
 ## S1-01 verification
 
