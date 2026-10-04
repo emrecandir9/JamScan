@@ -1,6 +1,6 @@
 {
   "story": "S1-05",
-  "checked_at": "2026-10-03T14:17:14.785704+00:00",
+  "checked_at": "2026-10-04T15:56:44.077835+00:00",
   "provider": "all",
   "inputs": {
     "discogs_query": "Daft Punk Random Access Memories",
@@ -14,7 +14,7 @@
       "status": "passed",
       "detail": "Authenticated identity received; personal account fields omitted.",
       "http_status": 200,
-      "elapsed_ms": 346,
+      "elapsed_ms": 324,
       "rate_limits": {
         "x-discogs-ratelimit": 60,
         "x-discogs-ratelimit-used": 0,
@@ -27,7 +27,7 @@
       "status": "passed",
       "detail": "Paginated release search contract passed.",
       "http_status": 200,
-      "elapsed_ms": 642,
+      "elapsed_ms": 302,
       "rate_limits": {
         "x-discogs-ratelimit": 60,
         "x-discogs-ratelimit-used": 1,
@@ -42,7 +42,7 @@
       "status": "passed",
       "detail": "Release metadata contract passed; playback requires its own provider.",
       "http_status": 200,
-      "elapsed_ms": 617,
+      "elapsed_ms": 420,
       "rate_limits": {
         "x-discogs-ratelimit": 60,
         "x-discogs-ratelimit-used": 2,
@@ -59,7 +59,7 @@
       "status": "passed",
       "detail": "Song search contract passed without credentials.",
       "http_status": 200,
-      "elapsed_ms": 120,
+      "elapsed_ms": 343,
       "rate_limits": {},
       "observations": {
         "result_count": 5,
@@ -72,7 +72,7 @@
       "status": "passed",
       "detail": "HTTPS audio received; device playback and duration are untested.",
       "http_status": 206,
-      "elapsed_ms": 79,
+      "elapsed_ms": 71,
       "rate_limits": {},
       "observations": {
         "bytes_sampled": 1024,

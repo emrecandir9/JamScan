@@ -11,6 +11,7 @@ and a Python/FastAPI backend.
 - [Configure main-branch protection](docs/GITHUB_SETUP.md)
 - [S1-01 acceptance checklist](docs/S1-01.md)
 - [S1-05 API validation and live evidence](docs/S1-05.md)
+- [Task ownership, completion audit, and report alignment](docs/TASK_STATUS.md)
 
 ## Current scope
 
@@ -33,8 +34,9 @@ The foundation was approved and merged through [PR #1](https://github.com/emreca
 Android and backend checks passed, the APK launched in an Android emulator,
 and `main` is protected with both CI checks required. Emre confirmed access
 for all four teammates, one required approval, prevention of bypassing, and
-the sprint-board update to Done. All S1-01 acceptance criteria are satisfied;
-only the final documentation PR needs review and merge. Evidence is recorded
+the sprint-board update to Done. The final documentation was also approved
+and merged through [PR #2](https://github.com/emrecandir9/JamScan/pull/2) on
+2026-09-30, with both CI checks passing. S1-01 is complete; evidence is recorded
 in [the S1-01 checklist](docs/S1-01.md).
 
 ## Repository structure
@@ -46,7 +48,8 @@ mobile/
   android/      Android platform project
 backend/
   app/          FastAPI application
-  tests/        API tests
+  scripts/      Opt-in external API validation tools
+  tests/        Health and offline API validation tests
   Dockerfile    Backend development container
 docs/          Setup, collaboration, and acceptance documentation
 .github/

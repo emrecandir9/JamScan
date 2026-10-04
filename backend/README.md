@@ -22,7 +22,7 @@ show incomplete validation. See [S1-05](../docs/S1-05.md) for credentials,
 options, live evidence, rate limits, and preview usage conditions.
 
 All five live checks passed with a locally configured Discogs token on
-2026-10-03. The sanitized report is saved in
+2026-10-04. The sanitized report is saved in
 [S1-05 evidence](../docs/evidence/S1-05-api-validation.json). To rerun with your
 local `.env`, first export its variables as described in the S1-05 guide; the
 script does not load that file automatically.
