@@ -1,67 +1,64 @@
 # JamSCAN
 
-An Android application for physical music collectors, built with Flutter/Dart
-and a Python/FastAPI backend.
+JamSCAN is an Android application in development for physical music collectors.
+Its planned workflow connects album-cover recognition, release information,
+audio previews, and personal collections and wishlists.
 
-## Start here
+## Architecture
 
-- [Set up and run the project](docs/SETUP.md)
-- [Work together on GitHub](docs/TEAM_WORKFLOW.md)
-- [Branch and coding conventions](CONTRIBUTING.md)
-- [Configure main-branch protection](docs/GITHUB_SETUP.md)
-- [S1-01 acceptance checklist](docs/S1-01.md)
-- [S1-05 API validation and live evidence](docs/S1-05.md)
-- [Task ownership, completion audit, and report alignment](docs/TASK_STATUS.md)
+- **Mobile:** Flutter and Dart provide the Android interface.
+- **Backend:** Python and FastAPI provide the foundation for the REST API and
+  external-service integrations.
+- **External services:** Discogs supplies release metadata, and the iTunes
+  Search API supplies links to available audio previews.
+- **Planned persistence:** SQLite with Drift will store collections and related
+  data locally. Riverpod is the planned state-management library.
+- **Development tools:** Docker supports a consistent backend environment,
+  while GitHub Actions runs quality checks, tests, and builds.
 
-## Current scope
+The project is being built incrementally. The current mobile app contains a
+welcome screen, and the backend exposes a health endpoint. Development scripts
+validate external API access; the complete scanning and playback workflow is
+not yet integrated.
 
-This foundation implements **S1-01**: a shared project structure, a minimal
-Android application, a backend health endpoint, build checks, and collaboration
-guidelines. The app displays a single JamSCAN welcome screen. No API keys are
-needed to build or test it.
+## Getting started
 
-Navigation, camera/gallery access, album models, recognition, external API
-integrations, and local persistence belong to later tasks.
+Follow the [setup guide](docs/SETUP.md) to install the required Flutter,
+Android, Java, and Python tools and run the project locally.
 
-S1-05 adds backend development tools to validate Discogs metadata and iTunes
-HTTPS previews. Live Discogs authentication, search, and metadata checks and
-iTunes search/preview checks have passed. Visual search is deferred to its
-separate task. These tools do not add application endpoints or mobile playback.
+- [Mobile application](mobile/README.md)
+- [Backend and API validation tools](backend/README.md)
+- [Contribution and coding conventions](CONTRIBUTING.md)
+- [GitHub collaboration workflow](docs/TEAM_WORKFLOW.md)
+- [Repository protection settings](docs/GITHUB_SETUP.md)
 
-## S1-01 verification
-
-The foundation was approved and merged through [PR #1](https://github.com/emrecandir9/JamScan/pull/1).
-Android and backend checks passed, the APK launched in an Android emulator,
-and `main` is protected with both CI checks required. Emre confirmed access
-for all four teammates, one required approval, prevention of bypassing, and
-the sprint-board update to Done. The final documentation was also approved
-and merged through [PR #2](https://github.com/emrecandir9/JamScan/pull/2) on
-2026-09-30, with both CI checks passing. S1-01 is complete; evidence is recorded
-in [the S1-01 checklist](docs/S1-01.md).
+Keep API credentials in backend environment variables. Use
+[`backend/.env.example`](backend/.env.example) as a local configuration template;
+never commit real credentials or include them in the mobile application.
 
 ## Repository structure
 
 ```text
 mobile/
-  lib/          Flutter entry point and application widget
-  test/         Widget tests
-  android/      Android platform project
+  lib/          Flutter application code
+  test/         Mobile tests
+  android/      Android platform configuration
 backend/
   app/          FastAPI application
-  scripts/      Opt-in external API validation tools
-  tests/        Health and offline API validation tests
+  scripts/      External API validation tools
+  tests/        Backend and integration validation tests
   Dockerfile    Backend development container
-docs/          Setup, collaboration, and acceptance documentation
+docs/           Setup, design decisions, and validation documentation
 .github/
-  workflows/    Automated quality checks and build validation
+  workflows/    Automated quality checks and builds
 ```
 
-Riverpod is the planned state-management library, and SQLite/Drift is the
-planned local-storage stack. Add them when the relevant story needs them.
+## Development workflow
 
-## Everyday workflow
+Create a separate branch for each change, follow the shared coding conventions,
+and run the relevant checks before opening a pull request into `main`.
+Changes require passing CI and a teammate's approval before merging.
 
-Update `main`, create a task branch, make and test changes, push the branch,
-then open a pull request into `main`. A teammate reviews it; merge once the
-review is approved and checks are green. See the step-by-step
-[team guide](docs/TEAM_WORKFLOW.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for formatting, linting, testing, and build
+commands. Live API validation is opt-in; automated tests use mocked external
+responses and do not require API credentials.
