@@ -10,6 +10,7 @@ and a Python/FastAPI backend.
 - [Branch and coding conventions](CONTRIBUTING.md)
 - [Configure main-branch protection](docs/GITHUB_SETUP.md)
 - [S1-01 acceptance checklist](docs/S1-01.md)
+- [Album data model](docs/DATA_MODEL.md)
 
 ## Current scope
 
