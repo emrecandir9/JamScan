@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="JamSCAN data model" id="jamscan-erd">
-    <mxGraphModel dx="1693" dy="1018" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+    <mxGraphModel dx="1355" dy="815" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -82,13 +82,13 @@
         <mxCell id="albums_r4" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="title  TEXT" vertex="1">
           <mxGeometry height="26" width="300" y="108" as="geometry" />
         </mxCell>
-        <mxCell id="albums_r5" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="year  INTEGER" vertex="1">
+        <mxCell id="albums_r5" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="year  INTEGER  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="134" as="geometry" />
         </mxCell>
-        <mxCell id="albums_r6" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="cover_path  TEXT" vertex="1">
+        <mxCell id="albums_r6" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="cover_path  TEXT  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="160" as="geometry" />
         </mxCell>
-        <mxCell id="albums_r7" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="discogs_format  TEXT" vertex="1">
+        <mxCell id="albums_r7" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="discogs_format  TEXT  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="186" as="geometry" />
         </mxCell>
         <mxCell id="albums_r8" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="metadata_source  TEXT" vertex="1">
@@ -112,13 +112,13 @@
         <mxCell id="tracks_r4" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="title  TEXT" vertex="1">
           <mxGeometry height="26" width="300" y="108" as="geometry" />
         </mxCell>
-        <mxCell id="tracks_r5" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="popularity_rank  INTEGER" vertex="1">
+        <mxCell id="tracks_r5" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="popularity_rank  INTEGER  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="134" as="geometry" />
         </mxCell>
         <mxCell id="tracks_r6" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="preview_url  TEXT  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="160" as="geometry" />
         </mxCell>
-        <mxCell id="tracks_r7" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="preview_source  TEXT" vertex="1">
+        <mxCell id="tracks_r7" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="preview_source  TEXT  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="186" as="geometry" />
         </mxCell>
         <mxCell id="history" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="HISTORY_ENTRIES" vertex="1">
@@ -148,24 +148,24 @@
         <mxCell id="history_r8" parent="history" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="created_at  DATETIME" vertex="1">
           <mxGeometry height="26" width="300" y="212" as="geometry" />
         </mxCell>
-        <mxCell id="e1" edge="1" parent="1" source="users" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.25;exitY=1;entryX=0.25;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="lists" value="owns">
+        <mxCell id="e1" edge="1" parent="1" source="users" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.25;exitY=1;entryX=0.25;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="lists" value="owns&#xa;ON DELETE CASCADE">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e2" edge="1" parent="1" source="users_r1" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="history_r2" value="records">
+        <mxCell id="e2" edge="1" parent="1" source="users_r1" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="history_r2" value="records&#xa;ON DELETE CASCADE">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e3" edge="1" parent="1" source="lists" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.5;exitY=1;entryX=0.25;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="entries" value="holds">
+        <mxCell id="e3" edge="1" parent="1" source="lists" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.5;exitY=1;entryX=0.25;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="entries" value="holds&#xa;ON DELETE CASCADE">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e4" edge="1" parent="1" source="albums_r7" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;exitDx=0;exitDy=0;" target="entries_r3" value="saved as">
+        <mxCell id="e4" edge="1" parent="1" source="albums_r7" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;exitDx=0;exitDy=0;" target="entries_r3" value="saved as&#xa;ON DELETE CASCADE">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e5" edge="1" parent="1" source="albums" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.763;entryY=1.026;entryDx=0;entryDy=0;entryPerimeter=0;" target="tracks_r7" value="contains">
+        <mxCell id="e5" edge="1" parent="1" source="albums" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.763;entryY=1.026;entryDx=0;entryDy=0;entryPerimeter=0;" target="tracks_r7" value="contains&#xa;ON DELETE CASCADE">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1070" y="139" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e6" edge="1" parent="1" source="albums_r1" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;dashed=1;startArrow=ERzeroToOne;startFill=0;endArrow=ERoneToMany;endFill=0;exitX=0;exitY=0.5;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="history" value="resolved to">
+        <mxCell id="e6" edge="1" parent="1" source="albums_r1" style="edgeStyle=entityRelationEdgeStyle;html=1;fontSize=11;dashed=1;startArrow=ERzeroToOne;startFill=0;endArrow=ERoneToMany;endFill=0;exitX=0;exitY=0.5;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="history" value="resolved to&#xa;ON DELETE SET NULL">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
