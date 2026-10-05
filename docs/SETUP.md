@@ -65,9 +65,10 @@ You do not need to rebuild the project or start the backend for this welcome scr
 2. Create a virtual phone, select a compatible Android system image
    (`arm64-v8a` on Apple Silicon), download it if necessary, and finish setup.
 3. Start the emulator and wait for its Android home screen.
-4. Drag `app-debug.apk` from `mobile/build/app/outputs/flutter-apk/` onto the
-   emulator screen. Alternatively, download and unzip `jamscan-debug-apk`
-   from a successful GitHub Actions run first.
+4. For a local build, drag `mobile/build/app/outputs/flutter-apk/app-debug.apk`
+   onto the emulator screen. For a GitHub Actions artifact, download and unzip
+   `jamscan-debug-apk`, then drag the `app-debug.apk` from the extracted folder
+   onto the emulator. Downloading an artifact does not create the local build path.
 5. Open **JamSCAN** in the emulator's app list. Confirm the title **JamSCAN**
    and message **Welcome to JamSCAN** appear.
 
@@ -105,8 +106,17 @@ python -m pip check
 python -m build
 ```
 
-The backend test checks the real HTTP route through FastAPI's test client.
+The health test checks the real HTTP route through FastAPI's test client.
+External API validation tests use mocked HTTP and need no credentials.
 The package build writes a wheel and source archive under `backend/dist/`.
+
+## External API validation
+
+S1-05 adds source-checkout development scripts for Discogs and iTunes HTTPS
+previews. They are separate from FastAPI routes and do not run automatically
+in CI. Follow [S1-05](S1-05.md#how-to-tell-it-works) to load your local
+`backend/.env`, run `python -m scripts.validate_apis`, and interpret the five
+checks. Never commit `.env` or copy its token into the mobile application.
 
 ## Optional backend container
 

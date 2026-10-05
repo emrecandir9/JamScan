@@ -1,0 +1,84 @@
+{
+  "story": "S1-05",
+  "checked_at": "2026-10-05T12:55:09.682903+00:00",
+  "provider": "all",
+  "inputs": {
+    "discogs_query": "Daft Punk Random Access Memories",
+    "itunes_query": "Daft Punk Get Lucky",
+    "country": "FR"
+  },
+  "scope": "Discogs and iTunes previews; visual search excluded.",
+  "checks": [
+    {
+      "name": "discogs.authentication",
+      "status": "passed",
+      "detail": "Authenticated identity received; personal account fields omitted.",
+      "http_status": 200,
+      "elapsed_ms": 392,
+      "rate_limits": {
+        "x-discogs-ratelimit": 60,
+        "x-discogs-ratelimit-used": 0,
+        "x-discogs-ratelimit-remaining": 60
+      },
+      "observations": {}
+    },
+    {
+      "name": "discogs.search",
+      "status": "passed",
+      "detail": "Paginated release search contract passed.",
+      "http_status": 200,
+      "elapsed_ms": 270,
+      "rate_limits": {
+        "x-discogs-ratelimit": 60,
+        "x-discogs-ratelimit-used": 1,
+        "x-discogs-ratelimit-remaining": 59
+      },
+      "observations": {
+        "result_count": 3
+      }
+    },
+    {
+      "name": "discogs.release",
+      "status": "passed",
+      "detail": "Release metadata contract passed; playback requires its own provider.",
+      "http_status": 200,
+      "elapsed_ms": 618,
+      "rate_limits": {
+        "x-discogs-ratelimit": 60,
+        "x-discogs-ratelimit-used": 2,
+        "x-discogs-ratelimit-remaining": 58
+      },
+      "observations": {
+        "release_id": 4570366,
+        "track_count": 13,
+        "audio_preview": "not_checked_by_discogs_probe"
+      }
+    },
+    {
+      "name": "itunes.search",
+      "status": "passed",
+      "detail": "Song search contract passed without credentials.",
+      "http_status": 200,
+      "elapsed_ms": 111,
+      "rate_limits": {},
+      "observations": {
+        "result_count": 5,
+        "https_preview_count": 5,
+        "country": "FR"
+      }
+    },
+    {
+      "name": "itunes.preview",
+      "status": "passed",
+      "detail": "HTTPS audio received; device playback and duration are untested.",
+      "http_status": 206,
+      "elapsed_ms": 170,
+      "rate_limits": {},
+      "observations": {
+        "bytes_sampled": 1024,
+        "audio_content_type": "audio/x-m4p",
+        "track_id": 617154366
+      }
+    }
+  ]
+}
