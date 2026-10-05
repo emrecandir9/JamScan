@@ -27,7 +27,6 @@ git clone https://github.com/emrecandir9/JamScan.git
 cd JamScan
 ```
 
-Emre already has a local clone and should use it rather than cloning into it.
 For HTTPS authentication, use GitHub Desktop or Git Credential Manager. A
 GitHub account password does not authenticate Git pushes; never paste a token
 into a remote URL or a tracked file.
