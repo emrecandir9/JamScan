@@ -69,14 +69,14 @@ class LibraryStore extends ChangeNotifier {
   }
 
   /// Albums owned across all collections (ghosts excluded).
-  int get ownedCount => listsOf(
-    ListKind.collection,
-  ).fold(0, (sum, list) => sum + list.ownedCount);
+  int get ownedCount =>
+      listsOf(ListKind.collection)
+          .fold(0, (sum, list) => sum + list.ownedCount);
 
   /// Albums across all wishlists.
-  int get wishlistCount => listsOf(
-    ListKind.wishlist,
-  ).fold(0, (sum, list) => sum + list.entries.length);
+  int get wishlistCount =>
+      listsOf(ListKind.wishlist)
+          .fold(0, (sum, list) => sum + list.entries.length);
 
   /// Lists that already contain [albumId].
   List<AlbumList> listsContaining(String albumId) {
@@ -128,7 +128,10 @@ class LibraryStore extends ChangeNotifier {
       format: ghost ? null : format,
       isGhost: ghost,
     );
-    _replace(listId, (list) => list.copyWith(entries: [entry, ...list.entries]));
+    _replace(
+      listId,
+      (list) => list.copyWith(entries: [entry, ...list.entries]),
+    );
     return AddAlbumResult.added;
   }
 
@@ -202,7 +205,10 @@ class LibraryStore extends ChangeNotifier {
             : copy,
       );
     }
-    _replace(toListId, (list) => list.copyWith(entries: [...copies, ...list.entries]));
+    _replace(
+      toListId,
+      (list) => list.copyWith(entries: [...copies, ...list.entries]),
+    );
     return TransferResult(transferred: copies.length, skipped: skipped);
   }
 

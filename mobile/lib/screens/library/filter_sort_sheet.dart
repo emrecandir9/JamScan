@@ -63,7 +63,12 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                   children: [
                     ChoiceMark(selected: _draft.sort == sort),
                     const SizedBox(width: 14),
-                    Text(sort.longLabel, style: theme.textTheme.bodyLarge),
+                    Expanded(
+                      child: Text(
+                        sort.longLabel,
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ),
                   ],
                 ),
               ),

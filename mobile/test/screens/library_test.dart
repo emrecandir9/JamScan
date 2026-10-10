@@ -79,11 +79,17 @@ void main() {
 
     await tester.tap(find.byTooltip('New list'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('listName.field')), 'jazz shelf');
+    await tester.enterText(
+      find.byKey(const Key('listName.field')),
+      'jazz shelf',
+    );
     await tester.pump();
     expect(find.text('A list with this name already exists'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('listName.field')), 'Shop finds');
+    await tester.enterText(
+      find.byKey(const Key('listName.field')),
+      'Shop finds',
+    );
     await tester.pump();
     await tapKey(tester, 'listName.confirm');
 

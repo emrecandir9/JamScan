@@ -2,7 +2,12 @@ import '../mock/mock_catalog.dart';
 import '../models/album.dart';
 
 /// Progress steps shown on the "Identifying album" screen.
-enum RecognitionStep { checkingPhoto, matchingCover, loadingPreviews, loadingDetails }
+enum RecognitionStep {
+  checkingPhoto,
+  matchingCover,
+  loadingPreviews,
+  loadingDetails,
+}
 
 enum RecognitionOutcomeKind { match, candidates, notRecognised, tooBlurry }
 

@@ -29,7 +29,17 @@ class AppShell extends StatelessWidget {
           },
           child: IndexedStack(
             index: shell.tab.index,
-            children: const [ScanScreen(), LibraryScreen(), ProfileScreen()],
+            // Every tab's Scaffold shows a shared snack bar. Only the visible
+            // tab may take part in hero transitions, otherwise the identical
+            // snack bar heroes collide when a route is pushed or popped.
+            children: [
+              for (final (index, tab) in const [
+                ScanScreen(),
+                LibraryScreen(),
+                ProfileScreen(),
+              ].indexed)
+                HeroMode(enabled: index == shell.tab.index, child: tab),
+            ],
           ),
         );
       },

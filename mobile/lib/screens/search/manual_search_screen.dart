@@ -142,7 +142,8 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
               ),
             ),
           ),
-          for (final album in filtered) _ResultRow(album: album, onTap: _select),
+          for (final album in filtered)
+            _ResultRow(album: album, onTap: _select),
         ],
       );
     }

@@ -101,7 +101,10 @@ class _HistorySheetState extends State<HistorySheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('History', style: theme.textTheme.headlineSmall),
+                    child: Text(
+                      'History',
+                      style: theme.textTheme.headlineSmall,
+                    ),
                   ),
                   TextButton(
                     onPressed: history.items.isEmpty ? null : _clearAll,
@@ -112,7 +115,7 @@ class _HistorySheetState extends State<HistorySheet> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
+              child: Wrap(
                 children: [
                   _chip('All', null),
                   _chip('Scans', HistoryKind.scan),

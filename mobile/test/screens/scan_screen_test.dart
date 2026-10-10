@@ -35,9 +35,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('denied permission shows the camera access page', (
-    tester,
-  ) async {
+  testWidgets('denied permission shows the camera access page', (tester) async {
     await showScan(
       tester,
       result: const CameraCaptureResult(CameraCaptureStatus.permissionDenied),
@@ -122,9 +120,7 @@ void main() {
 
     expect(camera.captureCalls, 1);
 
-    pending.complete(
-      const CameraCaptureResult(CameraCaptureStatus.cancelled),
-    );
+    pending.complete(const CameraCaptureResult(CameraCaptureStatus.cancelled));
     await tester.pumpAndSettle();
 
     expect(find.text('Capture cancelled.'), findsOneWidget);

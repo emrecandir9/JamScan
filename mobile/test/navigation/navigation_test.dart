@@ -124,9 +124,7 @@ void main() {
       expect(inResultCard('John Coltrane · 1957 · Vinyl LP'), findsOneWidget);
     });
 
-    testWidgets('an unrecognised cover leads to manual search', (
-      tester,
-    ) async {
+    testWidgets('an unrecognised cover leads to manual search', (tester) async {
       final camera = FakeCamera()..result = capturedPhoto();
       await pumpApp(
         tester,
@@ -207,11 +205,7 @@ void main() {
       tester,
     ) async {
       final deps = await pumpApp(tester);
-      await showResultViaSearch(
-        tester,
-        query: 'discovery',
-        title: 'Discovery',
-      );
+      await showResultViaSearch(tester, query: 'discovery', title: 'Discovery');
 
       await tester.tap(find.byTooltip('Add to collection'));
       await tester.pumpAndSettle();

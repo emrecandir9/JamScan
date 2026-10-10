@@ -78,18 +78,16 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
     final result = move
         ? library.moveEntries(widget.list.id, target.id, ids)
         : library.copyEntries(widget.list.id, target.id, ids);
-    Navigator.of(
-      context,
-    ).pop(EntrySheetResult(message: _transferMessage(result, target.name, move)));
+    Navigator.of(context).pop(
+      EntrySheetResult(message: _transferMessage(result, target.name, move)),
+    );
   }
 
   void _remove() {
-    AppScope.of(context).library.removeEntries(widget.list.id, {
-      widget.entry.id,
-    });
-    Navigator.of(
-      context,
-    ).pop(EntrySheetResult(message: 'Removed from ${widget.list.name}'));
+    AppScope.of(context).library
+        .removeEntries(widget.list.id, {widget.entry.id});
+    Navigator.of(context)
+        .pop(EntrySheetResult(message: 'Removed from ${widget.list.name}'));
   }
 
   @override
@@ -217,9 +215,9 @@ class _GhostEntrySheetState extends State<GhostEntrySheet> {
       widget.entry.id,
       deps.settings.defaultFormat,
     );
-    Navigator.of(context).pop(
-      EntrySheetResult(message: 'Marked as owned in ${widget.list.name}'),
-    );
+    Navigator.of(
+      context,
+    ).pop(EntrySheetResult(message: 'Marked as owned in ${widget.list.name}'));
   }
 
   Future<void> _moveToWishlist() async {
@@ -245,9 +243,8 @@ class _GhostEntrySheetState extends State<GhostEntrySheet> {
   }
 
   void _remove() {
-    AppScope.of(context).library.removeEntries(widget.list.id, {
-      widget.entry.id,
-    });
+    AppScope.of(context).library
+        .removeEntries(widget.list.id, {widget.entry.id});
     Navigator.of(context).pop(const EntrySheetResult(message: 'Ghost removed'));
   }
 
@@ -408,9 +405,8 @@ class PickerField extends StatelessWidget {
       onTap: () => _pick(context),
       borderRadius: BorderRadius.circular(8),
       child: InputDecorator(
-        decoration: AppInputs.outlined(
-          label,
-        ).copyWith(suffixIcon: const Icon(Icons.keyboard_arrow_down)),
+        decoration: AppInputs.outlined(label)
+            .copyWith(suffixIcon: const Icon(Icons.keyboard_arrow_down)),
         child: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );

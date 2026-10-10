@@ -138,7 +138,11 @@ class _SideButton extends StatelessWidget {
 }
 
 class _Shutter extends StatelessWidget {
-  const _Shutter({required this.light, required this.busy, required this.onTap});
+  const _Shutter({
+    required this.light,
+    required this.busy,
+    required this.onTap,
+  });
 
   final bool light;
   final bool busy;

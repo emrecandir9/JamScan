@@ -199,10 +199,7 @@ class _Stat extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            '$value',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text('$value', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ],
@@ -212,7 +209,11 @@ class _Stat extends StatelessWidget {
 }
 
 class _MenuRow extends StatelessWidget {
-  const _MenuRow({required this.icon, required this.label, required this.onTap});
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;

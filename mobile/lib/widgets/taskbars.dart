@@ -95,9 +95,7 @@ class _TaskbarButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.inkDeep,
-                  fontWeight: item.selected
-                      ? FontWeight.w600
-                      : FontWeight.w400,
+                  fontWeight: item.selected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
             ],

@@ -107,9 +107,8 @@ class _SaveAlbumSheetState extends State<SaveAlbumSheet> {
       ghost: isCollection && _ghost,
     );
     if (result == AddAlbumResult.added) {
-      Navigator.of(
-        context,
-      ).pop(SaveAlbumResult(listId: list.id, listName: list.name));
+      Navigator.of(context)
+          .pop(SaveAlbumResult(listId: list.id, listName: list.name));
     }
   }
 
@@ -213,19 +212,16 @@ class _SaveAlbumSheetState extends State<SaveAlbumSheet> {
                 ),
                 if (isCollection) ...[
                   const SizedBox(height: 8),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceMuted,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  Material(
+                    color: AppColors.surfaceMuted,
+                    borderRadius: BorderRadius.circular(12),
+                    clipBehavior: Clip.antiAlias,
                     child: CheckboxListTile(
                       value: _ghost,
                       onChanged: (value) =>
                           setState(() => _ghost = value ?? false),
                       controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                       title: const Text("Add as ghost – I don't own it yet"),
                       subtitle: const Text(
                         'Shows as a faded placeholder in this collection',

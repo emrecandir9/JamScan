@@ -99,9 +99,7 @@ class AlbumList {
     if (ghostCount == 0) {
       return owned;
     }
-    return ghostCount == 1
-        ? '$owned · 1 ghost'
-        : '$owned · $ghostCount ghosts';
+    return ghostCount == 1 ? '$owned · 1 ghost' : '$owned · $ghostCount ghosts';
   }
 
   bool containsAlbum(String albumId) {

@@ -32,7 +32,10 @@ class ScanFlowArgs {
 }
 
 class ManualSearchArgs {
-  const ManualSearchArgs({this.initialQuery = '', this.afterFailedScan = false});
+  const ManualSearchArgs({
+    this.initialQuery = '',
+    this.afterFailedScan = false,
+  });
 
   final String initialQuery;
 
@@ -107,9 +110,8 @@ abstract final class AppRouter {
         return MaterialPageRoute<bool>(
           settings: settings,
           fullscreenDialog: true,
-          builder: (context) => LoginScreen(
-            args: args is LoginArgs ? args : const LoginArgs(),
-          ),
+          builder: (context) =>
+              LoginScreen(args: args is LoginArgs ? args : const LoginArgs()),
         );
       case AppRoutes.settings:
         return MaterialPageRoute<void>(

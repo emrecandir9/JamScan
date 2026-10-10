@@ -230,7 +230,8 @@ class _ListPickerSheet extends StatelessWidget {
         final lists = library.lists
             .where(
               (list) =>
-                  list.id != excludeListId && (kind == null || list.kind == kind),
+                  list.id != excludeListId &&
+                  (kind == null || list.kind == kind),
             )
             .toList();
         return SingleChildScrollView(

@@ -6,8 +6,8 @@ import '../models/album.dart';
 class SettingsController extends ChangeNotifier {
   SettingsController({
     this._autoplayTopTrack = true,
-    MediaFormat defaultFormat = MediaFormat.vinyl,
-  }) : _defaultFormat = defaultFormat;
+    this._defaultFormat = MediaFormat.vinyl,
+  });
 
   bool _autoplayTopTrack;
   MediaFormat _defaultFormat;

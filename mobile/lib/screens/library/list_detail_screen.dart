@@ -49,7 +49,13 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
   void _toggle(String entryId) {
     final selection = _selection;
     if (selection == null) return;
-    setState(() => _selection = toggled(selection, entryId, !selection.contains(entryId)));
+    setState(
+      () => _selection = toggled(
+        selection,
+        entryId,
+        !selection.contains(entryId),
+      ),
+    );
   }
 
   Future<void> _openFilters(AlbumList list) async {
@@ -255,16 +261,28 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
           tooltip: 'List options',
           onSelected: (action) => _onListAction(action, list),
           itemBuilder: (context) => const [
-            PopupMenuItem(value: _ListAction.select, child: Text('Select albums')),
-            PopupMenuItem(value: _ListAction.rename, child: Text('Rename list')),
-            PopupMenuItem(value: _ListAction.delete, child: Text('Delete list')),
+            PopupMenuItem(
+              value: _ListAction.select,
+              child: Text('Select albums'),
+            ),
+            PopupMenuItem(
+              value: _ListAction.rename,
+              child: Text('Rename list'),
+            ),
+            PopupMenuItem(
+              value: _ListAction.delete,
+              child: Text('Delete list'),
+            ),
           ],
         ),
       ],
     );
   }
 
-  PreferredSizeWidget _buildSelectionBar(AlbumList list, Set<String> selection) {
+  PreferredSizeWidget _buildSelectionBar(
+    AlbumList list,
+    Set<String> selection,
+  ) {
     return AppBar(
       backgroundColor: Colors.white,
       scrolledUnderElevation: 0,
@@ -332,7 +350,8 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
           selected: selection?.contains(entry.id) ?? false,
           onTap: selection != null
               ? () => _toggle(entry.id)
-              : () => AppNav.openAlbum(context, entry.album, tab: AppTab.library),
+              : () =>
+                    AppNav.openAlbum(context, entry.album, tab: AppTab.library),
           onLongPress: selection != null
               ? null
               : () => setState(() => _selection = {entry.id}),
@@ -433,8 +452,7 @@ class _EntryRow extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(selecting ? 8 : 20, 8, 4, 8),
         child: Row(
           children: [
-            if (selecting)
-              Checkbox(value: selected, onChanged: (_) => onTap()),
+            if (selecting) Checkbox(value: selected, onChanged: (_) => onTap()),
             AlbumArt(album: album, ghost: ghost, size: 60),
             const SizedBox(width: 16),
             Expanded(

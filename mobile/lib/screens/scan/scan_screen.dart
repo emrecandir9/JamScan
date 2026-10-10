@@ -221,9 +221,7 @@ class _ScanScreenState extends State<ScanScreen> {
               ),
             ),
             Expanded(
-              child: permissionOff
-                  ? _buildPermissionOff()
-                  : _buildViewfinder(),
+              child: permissionOff ? _buildPermissionOff() : _buildViewfinder(),
             ),
             CaptureCard(
               busy: _busy,
@@ -321,7 +319,9 @@ class _ProfileButton extends StatelessWidget {
         color: light ? AppColors.inkDeep : Colors.white,
       ),
       style: IconButton.styleFrom(
-        backgroundColor: light ? AppColors.surfaceMuted : AppColors.cameraChrome,
+        backgroundColor: light
+            ? AppColors.surfaceMuted
+            : AppColors.cameraChrome,
         fixedSize: const Size(52, 52),
       ),
     );
@@ -423,9 +423,12 @@ class _HintPill extends StatelessWidget {
             Icon(icon, color: Colors.white, size: 18),
             const SizedBox(width: 8),
           ],
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 15),
+          Flexible(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 15),
+            ),
           ),
         ],
       ),

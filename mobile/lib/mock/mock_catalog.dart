@@ -312,11 +312,7 @@ abstract final class MockCatalog {
         title: 'Face to Face',
         duration: Duration(minutes: 3, seconds: 58),
       ),
-      Track(
-        position: 'D3',
-        title: 'Too Long',
-        duration: Duration(minutes: 10),
-      ),
+      Track(position: 'D3', title: 'Too Long', duration: Duration(minutes: 10)),
     ],
   );
 

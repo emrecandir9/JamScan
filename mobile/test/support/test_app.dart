@@ -75,7 +75,8 @@ AppDependencies testDependencies({
     gallery: gallery ?? FakeGallery(),
     recognition: MockRecognitionService(script: script, stepDelay: stepDelay),
     catalog:
-        catalog ?? MockCatalogService(latency: const Duration(milliseconds: 10)),
+        catalog ??
+        MockCatalogService(latency: const Duration(milliseconds: 10)),
     settings: SettingsController(autoplayTopTrack: false),
   );
 }
@@ -97,6 +98,8 @@ Future<AppDependencies> pumpApp(
 
 /// Taps a widget by key and waits for animations to finish.
 Future<void> tapKey(WidgetTester tester, String key) async {
+  await tester.ensureVisible(find.byKey(Key(key)));
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(Key(key)));
   await tester.pumpAndSettle();
 }

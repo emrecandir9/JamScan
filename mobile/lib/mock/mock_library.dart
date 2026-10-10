@@ -54,23 +54,13 @@ abstract final class MockLibrary {
             condition: 'VG+',
             notes: 'Bought at local record fair',
           ),
-          owned(
-            MockCatalog.rumours,
-            MediaFormat.vinyl,
-            4,
-            condition: 'NM',
-          ),
+          owned(MockCatalog.rumours, MediaFormat.vinyl, 4, condition: 'NM'),
           ghost(
             MockCatalog.loveSupreme,
             6,
             lookingFor: 'Original 1965 pressing, VG+ or better',
           ),
-          owned(
-            MockCatalog.blueTrain,
-            MediaFormat.vinyl,
-            9,
-            condition: 'VG',
-          ),
+          owned(MockCatalog.blueTrain, MediaFormat.vinyl, 9, condition: 'VG'),
           owned(
             MockCatalog.ledZeppelinIV,
             MediaFormat.vinyl,
@@ -103,9 +93,7 @@ abstract final class MockLibrary {
         id: nextId(),
         name: 'Gifts',
         kind: ListKind.collection,
-        entries: [
-          owned(MockCatalog.liveAtTheGarage, MediaFormat.tape, 40),
-        ],
+        entries: [owned(MockCatalog.liveAtTheGarage, MediaFormat.tape, 40)],
       ),
       AlbumList(
         id: nextId(),
