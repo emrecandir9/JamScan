@@ -12,9 +12,11 @@ audio previews, and personal collections and wishlists.
 - [Configure main-branch protection](docs/GITHUB_SETUP.md)
 - [S1-01 acceptance checklist](docs/S1-01.md)
 - [Album data model](docs/DATA_MODEL.md)
+- [App shell and user interface](docs/UI_SHELL.md)
 
-The project is being built incrementally. The current mobile app contains a
-welcome screen, and the backend exposes a health endpoint. Development scripts
+The project is being built incrementally. The mobile app implements the
+wireframed screens with mocked recognition, search, accounts and previews, and
+the backend exposes a health endpoint. Development scripts
 validate external API access; the complete scanning and playback workflow is
 not yet integrated.
 
