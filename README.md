@@ -6,15 +6,12 @@ audio previews, and personal collections and wishlists.
 
 ## Architecture
 
-- **Mobile:** Flutter and Dart provide the Android interface.
-- **Backend:** Python and FastAPI provide the foundation for the REST API and
-  external-service integrations.
-- **External services:** Discogs supplies release metadata, and the iTunes
-  Search API supplies links to available audio previews.
-- **Planned persistence:** SQLite with Drift will store collections and related
-  data locally. Riverpod is the planned state-management library.
-- **Development tools:** Docker supports a consistent backend environment,
-  while GitHub Actions runs quality checks, tests, and builds.
+- [Set up and run the project](docs/SETUP.md)
+- [Work together on GitHub](docs/TEAM_WORKFLOW.md)
+- [Branch and coding conventions](CONTRIBUTING.md)
+- [Configure main-branch protection](docs/GITHUB_SETUP.md)
+- [S1-01 acceptance checklist](docs/S1-01.md)
+- [Album data model](docs/DATA_MODEL.md)
 
 The project is being built incrementally. The current mobile app contains a
 welcome screen, and the backend exposes a health endpoint. Development scripts
