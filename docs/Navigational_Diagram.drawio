@@ -1,0 +1,250 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5">
+  <diagram id="jamscan-nav" name="JamSCAN Navigation">
+    <mxGraphModel dx="2037" dy="1201" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n_start" value="" style="ellipse;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="615" y="40" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_camera" value="Camera Page&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(Scan tab, default)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="560" y="200" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_history" value="View Scan History" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="240" y="120" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_perm" value="Camera Permission Request" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="240" y="210" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_gallery" value="Import from Gallery" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="240" y="300" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_loading" value="Loading Animation" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="880" y="200" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_retake" value="Retake Prompt&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(blurry / too dark)&lt;/i&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="880" y="80" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_result" value="Scanned Album Result page" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="1240" y="200" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_cand" value="Candidate Selection&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(several matches)&lt;/i&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="360" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_norec" value="Album Not Recognised" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="880" y="460" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_manual" value="Manual Search" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="1240" y="460" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_expanded" value="Expanded Album Info&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(tracklist, pressing, ratings)&lt;/i&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1480" y="200" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_player" value="Preview Mini-Player" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1480" y="280" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_addsheet" value="Add to Collection / Wishlist&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(pick list, duplicate warning)&lt;/i&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1480" y="360" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_signin" value="Sign-in Prompt&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(guest taps Add)&lt;/i&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1480" y="440" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_profile" value="User Profile" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="300" y="700" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_library" value="Library&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(guest: sign-in prompt)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="820" y="700" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_login" value="Login / Register" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="80" y="880" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_settings" value="Settings" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="340" y="880" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_logout" value="Log out / Delete Account Confirm" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="335" y="1000" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_listdetail" value="List Detail&lt;br&gt;&lt;i style=&quot;font-size:10px&quot;&gt;(collection or wishlist)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="820" y="880" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_listmgmt" value="Create / Rename / Delete List" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="705" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_filter" value="Search, Filter &amp;amp; Sort" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="820" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_edit" value="Edit Entry / Move / Remove" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="900" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="n_start" target="n_camera" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QKit2-ReeLhrKMogiiZR-1" value="Open the App" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_0">
+          <mxGeometry x="0.2308" y="2" relative="1" as="geometry">
+            <mxPoint x="-2" y="-48" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n_bulk" value="Bulk Select" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=12;size=0.08;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="980" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" value="Scan an album /&lt;br&gt;image selected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="n_camera" target="n_loading" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_camera" target="n_history" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" value="first launch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_camera" target="n_perm" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_camera" target="n_gallery" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" value="Stop scan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" parent="1" source="n_loading" target="n_camera" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" parent="1" source="n_loading" target="n_retake" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_7" value="Retake" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_retake" target="n_camera" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="696" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_8" value="Match found" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="n_loading" target="n_result" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_9" value="Several matches" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="n_loading" target="n_cand" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="999" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_10" value="No match" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_loading" target="n_norec" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_11" value="Select album" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" parent="1" source="n_cand" target="n_result" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1145" y="320" />
+              <mxPoint x="1291" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_12" value="Search manually" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="n_norec" target="n_manual" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_13" value="Search icon" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="n_camera" target="n_manual" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="696" y="580" />
+              <mxPoint x="1325" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_14" value="Select release" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" parent="1" source="n_manual" target="n_result" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_15" value="Back / scan again" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.15;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_result" target="n_camera" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1291" y="25" />
+              <mxPoint x="584" y="25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_16" value="Open past scan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_history" target="n_result" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="325" y="10" />
+              <mxPoint x="1325" y="10" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_result" target="n_expanded" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_result" target="n_player" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_result" target="n_addsheet" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_result" target="n_signin" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_21" value="Sign in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="n_signin" target="n_login" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1575" y="1120" />
+              <mxPoint x="160" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="n_camera" target="n_profile" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="660" />
+              <mxPoint x="380" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="n_camera" target="n_library" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="640" y="660" />
+              <mxPoint x="900" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_24" value="Bottom tab bar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="n_profile" target="n_library" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_25" value="Guest" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="n_profile" target="n_login" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="830" />
+              <mxPoint x="160" y="830" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_profile" target="n_settings" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_settings" target="n_logout" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_28" value="Open list" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_library" target="n_listdetail" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_library" target="n_listmgmt" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_listdetail" target="n_filter" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_listdetail" target="n_edit" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 4;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;" parent="1" source="n_listdetail" target="n_bulk" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_33" value="Open album" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" parent="1" source="n_listdetail" target="n_result" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="900" y="1070" />
+              <mxPoint x="1730" y="1070" />
+              <mxPoint x="1730" y="170" />
+              <mxPoint x="1359" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n_legend" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;Rounded box = page&lt;br&gt;Double-sided box = overlay / window&lt;br&gt;Dotted line = overlay opens on page&lt;br&gt;Solid arrow = content change&lt;br&gt;Double arrow = tab bar (both ways)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="40" y="420" width="250" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
