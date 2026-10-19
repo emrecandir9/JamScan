@@ -14,6 +14,7 @@ class CameraFrame {
     required this.v,
     required this.uvRowStride,
     required this.uvPixelStride,
+    this.rotationDegrees = 0,
   });
 
   final int width;
@@ -26,6 +27,10 @@ class CameraFrame {
 
   /// 1 for planar (I420) and 2 for interleaved (NV12/NV21) chroma.
   final int uvPixelStride;
+
+  /// Clockwise rotation that makes the frame upright on screen (the
+  /// camera's `sensorOrientation`).
+  final int rotationDegrees;
 
   int lumaAt(int x, int yy) => y[yy * yRowStride + x];
 

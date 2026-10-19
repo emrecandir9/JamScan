@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:jamscan/services/live_scanner.dart';
+import 'package:jamscan/vision/best_frame_selector.dart';
 import 'package:jamscan/vision/frame_analyzer.dart';
 
 /// A live scanner without a camera, whose state tests can set.
@@ -26,6 +29,11 @@ class FakeLiveScanner extends LiveScanner {
     _covers = value;
     notifyListeners();
   }
+
+  final captureController = StreamController<CoverCapture>.broadcast();
+
+  @override
+  Stream<CoverCapture> get captures => captureController.stream;
 
   @override
   int get sensorDegrees => 90;
