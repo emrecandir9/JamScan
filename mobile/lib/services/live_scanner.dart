@@ -191,6 +191,12 @@ class CameraLiveScanner extends LiveScanner {
         .then((analysis) {
           _frames++;
           _totalMs += analysis.elapsedMs;
+          if (kDebugMode && _frames % 25 == 1) {
+            debugPrint(
+              'Live analysis: frame $_frames, ${image.width}x${image.height}, '
+              '${analysis.elapsedMs} ms, ${analysis.covers.length} covers',
+            );
+          }
           if (!_paused) {
             _covers = analysis.covers;
             notifyListeners();

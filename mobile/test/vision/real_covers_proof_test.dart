@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
@@ -111,7 +112,25 @@ void main() {
         ? false
         : 'Run backend scripts.fetch_dev_covers to enable this test.',
   );
+
+  test('detects the cover in a frame recorded on the emulator', () {
+    final bytes = emulatorFrame.readAsBytesSync();
+    final pixels = Uint8List.sublistView(bytes, bytes.length - 320 * 180);
+
+    final found = const CoverDetector().detect(GrayImage(320, 180, pixels));
+
+    // The cover spans about x 80-167, y 36-121 in this frame.
+    final box = found.single.quad.scale(320, 180).bounds;
+    expect(box.left, closeTo(80, 8));
+    expect(box.right, closeTo(167, 8));
+    expect(box.top, closeTo(36, 14));
+    expect(box.bottom, closeTo(121, 8));
+  }, skip: emulatorFrame.existsSync() ? false : 'Recorded frame not present.');
 }
+
+/// A 320 x 180 analysis frame recorded on the Android emulator (camera fed
+/// with a table scene): Rumours, with a plank seam along its top edge.
+final emulatorFrame = File('../backend/data/dev/frames/emulator_rumours.pgm');
 
 /// A cover filling 35-75 % of the frame height, tilted and in perspective.
 List<Point2> randomQuad(math.Random random, int width, int height) {

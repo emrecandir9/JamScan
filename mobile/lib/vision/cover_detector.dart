@@ -9,17 +9,19 @@ class CoverDetectorConfig {
   const CoverDetectorConfig({
     this.edgePercentiles = const [0.70, 0.85, 0.93],
     this.minEdgeStrength = 40,
-    this.minArea = 0.03,
+    this.minArea = 0.06,
     this.maxArea = 0.97,
     this.minAspect = 0.6,
     this.maxAspect = 1.65,
     this.minAngle = 55,
     this.maxAngle = 125,
     this.minFill = 0.88,
-    this.minSideSupport = 0.55,
+    this.minSideSupport = 0.45,
     this.minMeanSupport = 0.7,
     this.maxCovers = 3,
     this.openingRadius = 5,
+    this.cannyHighPercentile = 0.8,
+    this.cannyLowRatio = 0.35,
   });
 
   /// Edge thresholds, as percentiles of gradient strength. Each one is tried
@@ -41,8 +43,8 @@ class CoverDetectorConfig {
   final double minAngle;
   final double maxAngle;
 
-  /// Quad area over the edge region's hull area: low values mean the region
-  /// is not shaped like a quadrilateral.
+  /// The smaller of quad and hull area over the larger one: low values mean
+  /// the region is not shaped like a quadrilateral.
   final double minFill;
 
   /// Fraction of points along each side that lie on an edge.
@@ -53,6 +55,12 @@ class CoverDetectorConfig {
   /// Structures thinner than about twice this many pixels are removed
   /// before filled shapes are traced.
   final int openingRadius;
+
+  /// Canny hysteresis: strong edges are above this percentile of thinned
+  /// gradient strength; weak ones above [cannyLowRatio] of that are kept
+  /// when connected to a strong one.
+  final double cannyHighPercentile;
+  final double cannyLowRatio;
 }
 
 /// One detected cover. Corners are normalised to 0-1 in the analysed frame.
@@ -85,20 +93,23 @@ class CoverDetector {
   final CoverDetectorConfig config;
 
   List<CoverDetection> detect(GrayImage image) {
-    final magnitude = image.blurred().gradientMagnitude();
+    final w = image.width;
+    final h = image.height;
+    final blurred = image.blurred();
+    final magnitude = blurred.gradientMagnitude();
+    final edgeMaps = [
+      for (final percentile in config.edgePercentiles)
+        _threshold(
+          magnitude,
+          math.max(config.minEdgeStrength, _percentile(magnitude, percentile)),
+        ),
+      // Canny-style thin edges keep faint cover borders that touch strong
+      // ones, without the smooth background gradients a low threshold lets in.
+      _canny(blurred, magnitude, config),
+    ];
     final candidates = <_Candidate>[];
-    for (final percentile in config.edgePercentiles) {
-      final threshold = math.max(
-        config.minEdgeStrength,
-        _percentile(magnitude, percentile),
-      );
-      final edges = _dilate(
-        _threshold(magnitude, threshold),
-        image.width,
-        image.height,
-      );
-      final w = image.width;
-      final h = image.height;
+    for (final raw in edgeMaps) {
+      final edges = _dilate(raw, w, h);
       candidates
         ..addAll(_quadsFromRegions(edges, edges, w, h))
         // Closed outlines filled in, with thin lines (table seams, cables,
@@ -112,7 +123,7 @@ class CoverDetector {
           ),
         );
     }
-    return _suppress(candidates, image.width, image.height);
+    return _suppress(candidates, w, h);
   }
 
   /// Turns each 8-connected region of [mask] into a quad candidate, checked
@@ -202,7 +213,10 @@ class CoverDetector {
         area > config.maxArea * frameArea) {
       return null;
     }
-    if (hullArea <= 0 || area / hullArea < config.minFill) return null;
+    final fill = hullArea <= 0
+        ? 0.0
+        : math.min(area, hullArea) / math.max(area, hullArea);
+    if (fill < config.minFill) return null;
     final aspect = quad.aspectRatio;
     if (aspect < config.minAspect || aspect > config.maxAspect) return null;
     if (quad.angles.any((a) => a < config.minAngle || a > config.maxAngle)) {
@@ -224,7 +238,7 @@ class CoverDetector {
         mean < config.minMeanSupport) {
       return null;
     }
-    return _Candidate(quad, mean);
+    return _Candidate(quad, mean, mean * fill);
   }
 
   /// Fraction of sample points between [a] and [b] (ignoring the ends,
@@ -268,6 +282,20 @@ class CoverDetector {
     int width,
     int height,
   ) {
+    // The same cover is usually found by several edge maps. Keep the
+    // best-fitting outline of each near-duplicate group: a looser one may
+    // have picked up a table seam along one side.
+    candidates.sort((a, b) => b.quality.compareTo(a.quality));
+    final distinct = <_Candidate>[];
+    for (final candidate in candidates) {
+      if (!distinct.any(
+        (d) => d.quad.bounds.iou(candidate.quad.bounds) > 0.7,
+      )) {
+        distinct.add(candidate);
+      }
+    }
+    candidates = distinct;
+
     candidates.sort((a, b) {
       // Prefer bigger outlines: inner artwork frames are smaller than the
       // cover around them. Edge support breaks ties.
@@ -304,10 +332,13 @@ class CoverDetector {
 }
 
 class _Candidate {
-  const _Candidate(this.quad, this.support);
+  const _Candidate(this.quad, this.support, this.quality);
 
   final Quad quad;
   final double support;
+
+  /// Edge support times fill: how well the quad fits its region.
+  final double quality;
 }
 
 int _percentile(Uint16List values, double fraction) {
@@ -432,4 +463,86 @@ Uint8List _boxFilter(
   }
 
   return pass(pass(mask, true), false);
+}
+
+/// Canny edge map: non-maximum suppression along the gradient direction,
+/// then hysteresis between a high and a low threshold.
+Uint8List _canny(
+  GrayImage blurred,
+  Uint16List magnitude,
+  CoverDetectorConfig config,
+) {
+  final width = blurred.width;
+  final height = blurred.height;
+  final p = blurred.pixels;
+  final thin = Uint16List(magnitude.length);
+  for (var y = 1; y < height - 1; y++) {
+    for (var x = 1; x < width - 1; x++) {
+      final i = y * width + x;
+      final m = magnitude[i];
+      if (m == 0) continue;
+      final gx =
+          (p[i - width + 1] + 2 * p[i + 1] + p[i + width + 1]) -
+          (p[i - width - 1] + 2 * p[i - 1] + p[i + width - 1]);
+      final gy =
+          (p[i + width - 1] + 2 * p[i + width] + p[i + width + 1]) -
+          (p[i - width - 1] + 2 * p[i - width] + p[i - width + 1]);
+      // Neighbours across the edge, in one of four directions.
+      final ax = gx.abs();
+      final ay = gy.abs();
+      int before;
+      int after;
+      if (ay * 5 < ax * 2) {
+        before = i - 1;
+        after = i + 1;
+      } else if (ax * 5 < ay * 2) {
+        before = i - width;
+        after = i + width;
+      } else if ((gx > 0) == (gy > 0)) {
+        before = i - width - 1;
+        after = i + width + 1;
+      } else {
+        before = i - width + 1;
+        after = i + width - 1;
+      }
+      if (m >= magnitude[before] && m > magnitude[after]) thin[i] = m;
+    }
+  }
+
+  final high = math.max(
+    config.minEdgeStrength,
+    _percentile(thin, config.cannyHighPercentile),
+  );
+  final low = math.max(
+    config.minEdgeStrength ~/ 2,
+    (high * config.cannyLowRatio).round(),
+  );
+  final edges = Uint8List(thin.length);
+  final stack = Int32List(thin.length);
+  var top = 0;
+  for (var i = 0; i < thin.length; i++) {
+    if (thin[i] >= high && edges[i] == 0) {
+      edges[i] = 1;
+      stack[top++] = i;
+      while (top > 0) {
+        final j = stack[--top];
+        final x = j % width;
+        final y = j ~/ width;
+        for (var dy = -1; dy <= 1; dy++) {
+          final ny = y + dy;
+          if (ny < 0 || ny >= height) continue;
+          for (var dx = -1; dx <= 1; dx++) {
+            final nx = x + dx;
+            if (nx < 0 || nx >= width) continue;
+            final k = ny * width + nx;
+            if (edges[k] == 0 && thin[k] >= low) {
+              edges[k] = 1;
+              stack[top++] = k;
+            }
+          }
+        }
+      }
+    }
+  }
+  return edges;
 }

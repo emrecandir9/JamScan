@@ -230,26 +230,73 @@ List<Point2> convexHull(List<Point2> points) {
   ];
 }
 
-/// Approximates a convex polygon by four of its vertices, repeatedly
-/// dropping the vertex whose removal loses the least area. Returns `null`
+/// Approximates a convex polygon by a quadrilateral.
+///
+/// Each step makes the cheaper of two simplifications, measured in area
+/// changed: drop a vertex, or replace a short edge by extending its two
+/// neighbouring edges until they meet. The second restores a corner that was
+/// cut off (by a worn sleeve corner or a gap in the outline). Returns `null`
 /// when [hull] has fewer than four vertices.
 List<Point2>? reduceToQuadrilateral(List<Point2> hull) {
   if (hull.length < 4) return null;
   final points = [...hull];
+  // Only small cut corners are restored; larger gaps mean the region is
+  // not a quadrilateral, and inventing a corner would hide that.
+  var allowance = polygonArea(hull) * 0.1;
   while (points.length > 4) {
-    var best = 0;
-    var bestLoss = double.infinity;
-    for (var i = 0; i < points.length; i++) {
-      final a = points[(i - 1 + points.length) % points.length];
+    final n = points.length;
+    var bestCost = double.infinity;
+    var bestIndex = 0;
+    Point2? bestCorner;
+    for (var i = 0; i < n; i++) {
+      final a = points[(i - 1 + n) % n];
       final b = points[i];
-      final c = points[(i + 1) % points.length];
-      final loss = polygonArea([a, b, c]);
-      if (loss < bestLoss) {
-        bestLoss = loss;
-        best = i;
+      final c = points[(i + 1) % n];
+      final d = points[(i + 2) % n];
+      final removal = polygonArea([a, b, c]);
+      if (removal < bestCost) {
+        bestCost = removal;
+        bestIndex = i;
+        bestCorner = null;
+      }
+      final corner = lineIntersection(a, b, d, c);
+      if (corner != null && _isBeyond(corner, b, c, a)) {
+        final added = polygonArea([b, corner, c]);
+        if (added < bestCost && added <= allowance) {
+          bestCost = added;
+          bestIndex = i;
+          bestCorner = corner;
+        }
       }
     }
-    points.removeAt(best);
+    if (bestCorner == null) {
+      points.removeAt(bestIndex);
+    } else {
+      // Replace edge (bestIndex, bestIndex + 1) with the new corner.
+      final next = (bestIndex + 1) % n;
+      allowance -= bestCost;
+      points[bestIndex] = bestCorner;
+      points.removeAt(next);
+    }
   }
   return points;
+}
+
+/// Intersection of the line through [a] and [b] with the line through [c]
+/// and [d], or `null` when they are (nearly) parallel.
+Point2? lineIntersection(Point2 a, Point2 b, Point2 c, Point2 d) {
+  final r = b - a;
+  final s = d - c;
+  final denominator = r.x * s.y - r.y * s.x;
+  if (denominator.abs() < 1e-9) return null;
+  final t = ((c.x - a.x) * s.y - (c.y - a.y) * s.x) / denominator;
+  return a + r * t;
+}
+
+/// True when [corner] lies on the far side of edge [b]-[c] from [inside],
+/// so extending the neighbouring edges grows the polygon outwards.
+bool _isBeyond(Point2 corner, Point2 b, Point2 c, Point2 inside) {
+  double side(Point2 p) =>
+      (c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x);
+  return side(corner) * side(inside) < 0;
 }

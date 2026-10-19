@@ -88,6 +88,39 @@ void main() {
       expect(quad.angles, everyElement(closeTo(90, 1e-9)));
     });
 
+    test('a square with a clipped corner reduces to the full square', () {
+      // Hull of a cover whose bottom-right corner is missing from the
+      // outline.
+      const pentagon = [
+        Point2(0, 0),
+        Point2(100, 0),
+        Point2(100, 85),
+        Point2(85, 100),
+        Point2(0, 100),
+      ];
+
+      final quad = Quad(reduceToQuadrilateral(pentagon)!);
+
+      expect(quad.bottomRight.x, closeTo(100, 1e-9));
+      expect(quad.bottomRight.y, closeTo(100, 1e-9));
+    });
+
+    test('a large missing area is not invented', () {
+      // Half of the square is missing: dropping a vertex is cheaper than
+      // inventing a big corner.
+      const shape = [
+        Point2(0, 0),
+        Point2(100, 0),
+        Point2(100, 30),
+        Point2(30, 100),
+        Point2(0, 100),
+      ];
+
+      final quad = Quad(reduceToQuadrilateral(shape)!);
+
+      expect(quad.area, lessThan(100 * 100 * 0.9));
+    });
+
     test('homography maps a tilted quad onto the unit square', () {
       const tilted = [
         Point2(10, 20),
