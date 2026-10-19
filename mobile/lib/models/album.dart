@@ -86,11 +86,15 @@ class Album {
   /// False when the preview service has nothing for this release.
   final bool previewsAvailable;
 
-  /// `Artist · 1959`
-  String get artistYear => '$artist · $year';
+  /// `Artist · 1959`. The year is left out when unknown (0), as for some
+  /// releases recognised before their full details arrive.
+  String get artistYear => [artist, if (year > 0) '$year'].join(' · ');
 
   /// `Artist · 1959 · Vinyl LP`
-  String get artistYearFormat => '$artist · $year · $formatDescription';
+  String get artistYearFormat => [
+    artistYear,
+    if (formatDescription.isNotEmpty) formatDescription,
+  ].join(' · ');
 
   /// Up to five tracks with previews, most popular first.
   List<Track> get topTracks {

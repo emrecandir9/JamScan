@@ -317,7 +317,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _allowCamera() async {
-    await _live.start();
+    await _live.requestAccess();
     if (!mounted) return;
     if (_live.state == LiveScannerState.unavailable) {
       await _capture();
