@@ -8,6 +8,7 @@ import 'package:jamscan/app_scope.dart';
 import 'package:jamscan/services/camera_capture_service.dart';
 import 'package:jamscan/services/catalog_service.dart';
 import 'package:jamscan/services/gallery_import_service.dart';
+import 'package:jamscan/services/live_scanner.dart';
 import 'package:jamscan/services/recognition_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
 import 'package:jamscan/state/settings_controller.dart';
@@ -68,8 +69,10 @@ AppDependencies testDependencies({
   List<RecognitionOutcomeKind> script = const [RecognitionOutcomeKind.match],
   Duration stepDelay = const Duration(milliseconds: 10),
   MockCatalogService? catalog,
+  LiveScanner? liveScanner,
 }) {
   return AppDependencies(
+    liveScanner: liveScanner ?? UnavailableLiveScanner(),
     auth: AuthController(signedInAsDemo: signedIn),
     camera: camera ?? FakeCamera(),
     gallery: gallery ?? FakeGallery(),
