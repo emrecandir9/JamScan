@@ -23,6 +23,19 @@ class FakeRecognitionApi implements RecognitionApi {
     return completer.future;
   }
 
+  /// Waits (up to [timeout]) until a request is waiting for an answer.
+  Future<void> untilWaiting({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (!pending.any((c) => !c.isCompleted)) {
+      if (DateTime.now().isAfter(deadline)) {
+        throw StateError('No recognition request arrived.');
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+    }
+  }
+
   /// Answers the oldest unanswered request.
   void answer(ApiRecognition result) =>
       pending.firstWhere((c) => !c.isCompleted).complete(result);

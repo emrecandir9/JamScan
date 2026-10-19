@@ -4,8 +4,14 @@ import 'package:jamscan/state/recognition_session.dart';
 
 import '../support/fake_recognition_api.dart';
 
-/// Lets queued microtasks and zero-length timers run.
-Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 1));
+/// Lets the session's pending steps run. Zero-length timers fire in the
+/// order they were created, so these run after the session's own ones; a
+/// timer with a real delay would not be ordered reliably under load.
+Future<void> settle() async {
+  for (var i = 0; i < 20; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
 
 void main() {
   late FakeRecognitionApi api;

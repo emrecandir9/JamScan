@@ -151,7 +151,7 @@ void main() {
         skipQualityCheck: true,
         onStep: steps.add,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await api.untilWaiting();
       expect(session.jobs.single.source, JobSource.manual);
       api.answer(matchOf('12643712'));
       final result = await outcome;
@@ -179,7 +179,7 @@ void main() {
 
       Future<RecognitionOutcome> run(void Function() reply) async {
         final outcome = service.identify(imagePath: photoPath);
-        await Future<void>.delayed(const Duration(milliseconds: 5));
+        await api.untilWaiting();
         reply();
         return outcome;
       }
@@ -214,9 +214,7 @@ void main() {
       final service = QueuedRecognitionService(session);
 
       final outcome = service.identify(imagePath: photoPath);
-      for (var i = 0; i < 100 && api.calls == 0; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-      }
+      await api.untilWaiting(timeout: const Duration(seconds: 10));
       api.answer(matchOf('1'));
 
       expect((await outcome).kind, RecognitionOutcomeKind.match);
