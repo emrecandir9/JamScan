@@ -392,20 +392,29 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                       fit: StackFit.expand,
                       children: [
                         LiveCameraView(scanner: _live),
-                        _FramingArea(result: result, live: true),
-                        // Hidden while a photo's result card is open, so
-                        // the two do not overlap.
-                        if (result == null)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: LiveResultsPanel(
-                              session: _deps.session,
-                              scanner: _live,
-                              onOpen: _openLiveResult,
-                              onReview: _reviewLiveResult,
+                        // The results strip has its own band above the
+                        // guide square, so it never covers an album being
+                        // framed. The band stays while empty, so the square
+                        // does not move when the first result arrives.
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: liveResultsStripHeight,
+                              // Hidden while a photo's result card is open.
+                              child: result == null
+                                  ? LiveResultsPanel(
+                                      session: _deps.session,
+                                      scanner: _live,
+                                      onOpen: _openLiveResult,
+                                      onReview: _reviewLiveResult,
+                                    )
+                                  : null,
                             ),
-                          ),
+                            Expanded(
+                              child: _FramingArea(result: result, live: true),
+                            ),
+                          ],
+                        ),
                       ],
                     )
                   : _FramingArea(result: result),

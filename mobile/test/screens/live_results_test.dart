@@ -8,6 +8,7 @@ import 'package:jamscan/vision/best_frame_selector.dart';
 import 'package:jamscan/vision/frame_analyzer.dart';
 import 'package:jamscan/vision/frame_quality.dart';
 import 'package:jamscan/vision/geometry.dart';
+import 'package:jamscan/widgets/viewfinder.dart';
 
 import '../support/fake_live_scanner.dart';
 import '../support/fake_recognition_api.dart';
@@ -95,6 +96,26 @@ void main() {
     expect(inPanel('Rumours'), findsOneWidget);
   });
 
+  testWidgets('the results strip stays above the guide square', (tester) async {
+    await pumpLive(tester);
+    final frameBefore = tester.getRect(find.byType(ViewfinderFrame));
+    for (var i = 0; i < 3; i++) {
+      live.captureController.add(capture(hashNumber(i)));
+    }
+    await tester.pump(const Duration(milliseconds: 10));
+    api
+      ..answer(matchOf(MockCatalog.rumours.id))
+      ..answer(matchOf(MockCatalog.kindOfBlue.id))
+      ..answer(matchOf(MockCatalog.discovery.id));
+    await tester.pumpAndSettle();
+
+    final strip = tester.getRect(find.byKey(const Key('scan.liveResults')));
+    final frame = tester.getRect(find.byType(ViewfinderFrame));
+    expect(strip.bottom, lessThanOrEqualTo(frame.top));
+    // The guide square does not move when results arrive.
+    expect(frame, frameBefore);
+  });
+
   testWidgets('an uncertain result lets the user choose', (tester) async {
     await pumpLive(tester);
     live.captureController.add(capture(hashNumber(1)));
@@ -127,7 +148,7 @@ void main() {
 
     api.fail();
     await tester.pumpAndSettle();
-    expect(inPanel('Failed: service unavailable'), findsOneWidget);
+    expect(inPanel('Service unavailable'), findsOneWidget);
 
     await tester.tap(
       find.descendant(
