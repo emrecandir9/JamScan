@@ -183,6 +183,19 @@ void main() {
     expect(session.liveJobs, isEmpty);
   });
 
+  test('a dismissed cover is not recognised again', () async {
+    final job = session.addLiveCapture(bytes(0), hashNumber(2))!;
+    await settle();
+    api.answer(matchOf('1'));
+    await job.finished;
+
+    session.dismiss(job);
+
+    expect(session.addLiveCapture(bytes(1), hashNumber(2)), isNull);
+    session.clearFinished();
+    expect(session.addLiveCapture(bytes(2), hashNumber(2)), isNotNull);
+  });
+
   test('running jobs cannot be dismissed or cleared', () async {
     final running = session.addLiveCapture(bytes(0), hashNumber(0))!;
     final done = session.addLiveCapture(bytes(1), hashNumber(1))!;

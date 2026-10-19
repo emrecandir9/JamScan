@@ -120,6 +120,9 @@ class RecognitionSession extends ChangeNotifier {
   final int duplicateBits;
 
   final List<RecognitionJob> _jobs = [];
+
+  /// Hashes of live covers the user dismissed: not sent again this session.
+  final List<int> _dismissed = [];
   int _nextId = 1;
   bool _disposed = false;
 
@@ -134,12 +137,13 @@ class RecognitionSession extends ChangeNotifier {
   /// Queues a cover captured by the live camera. Returns `null` when the
   /// same cover was already submitted in this session.
   RecognitionJob? addLiveCapture(Uint8List jpeg, int hash) {
-    final seen = _jobs.any(
-      (j) =>
-          j.source == JobSource.live &&
-          !_worthRetrying(j) &&
-          hammingDistance(j.hash, hash) <= duplicateBits,
-    );
+    bool near(int other) => hammingDistance(other, hash) <= duplicateBits;
+    final seen =
+        _dismissed.any(near) ||
+        _jobs.any(
+          (j) =>
+              j.source == JobSource.live && !_worthRetrying(j) && near(j.hash),
+        );
     if (seen) return null;
     return _add(RecognitionJob._(_nextId++, JobSource.live, jpeg, hash));
   }
@@ -188,14 +192,20 @@ class RecognitionSession extends ChangeNotifier {
     return job._album!;
   }
 
+  /// Removes a finished job. A dismissed live cover is not recognised
+  /// again while the camera keeps seeing it.
   void dismiss(RecognitionJob job) {
     if (job.isActive) return;
+    if (job.source == JobSource.live && !_worthRetrying(job)) {
+      _dismissed.add(job.hash);
+    }
     _jobs.remove(job);
     _notify();
   }
 
   /// Ends the session: forgets every job that is not running.
   void clearFinished() {
+    _dismissed.clear();
     _jobs.removeWhere((j) => !j.isActive && j.state != JobState.queued);
     _notify();
   }

@@ -393,16 +393,19 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                       children: [
                         LiveCameraView(scanner: _live),
                         _FramingArea(result: result, live: true),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: LiveResultsPanel(
-                            session: _deps.session,
-                            scanner: _live,
-                            onOpen: _openLiveResult,
-                            onReview: _reviewLiveResult,
+                        // Hidden while a photo's result card is open, so
+                        // the two do not overlap.
+                        if (result == null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: LiveResultsPanel(
+                              session: _deps.session,
+                              scanner: _live,
+                              onOpen: _openLiveResult,
+                              onReview: _reviewLiveResult,
+                            ),
                           ),
-                        ),
                       ],
                     )
                   : _FramingArea(result: result),
