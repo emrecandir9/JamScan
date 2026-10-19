@@ -43,3 +43,7 @@ dist/
 *.jks
 *.keystore
 **/android/key.properties
+
+# Recognition model and generated datasets/indexes
+backend/models/
+backend/data/
