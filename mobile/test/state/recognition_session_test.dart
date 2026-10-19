@@ -140,6 +140,24 @@ void main() {
     expect(session.addLiveCapture(bytes(3), 0x00FF00FF00FF00FF), isNotNull);
   });
 
+  test('an album the backend did not know is not sent again', () async {
+    final unknown = session.addLiveCapture(bytes(0), hashNumber(3))!;
+    await settle();
+    api.answer(const ApiRecognition(ApiDecision.noMatch, []));
+    await unknown.finished;
+
+    expect(session.addLiveCapture(bytes(1), hashNumber(3)), isNull);
+  });
+
+  test('an unclear photo of a cover may be retried', () async {
+    final blurry = session.addLiveCapture(bytes(0), hashNumber(4))!;
+    await settle();
+    api.answer(const ApiRecognition(ApiDecision.poorQuality, []));
+    await blurry.finished;
+
+    expect(session.addLiveCapture(bytes(1), hashNumber(4)), isNotNull);
+  });
+
   test('a second result for the same album keeps one card', () async {
     final a = session.addLiveCapture(bytes(0), hashNumber(0))!;
     final b = session.addLiveCapture(bytes(1), hashNumber(1))!;

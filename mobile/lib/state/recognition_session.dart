@@ -103,8 +103,9 @@ class RecognitionJob {
 /// - Finished jobs free their slot but stay listed until dismissed or the
 ///   app closes (FR-09, FR-10).
 /// - The same album is not recognised twice: a live crop whose hash is
-///   within [duplicateBits] of an earlier one is ignored, and a second
-///   result for an album already found is merged into the first.
+///   within [duplicateBits] of an earlier one is ignored (unless that one
+///   failed for a reason a retry can fix), and a second result for an
+///   album already found is merged into the first.
 class RecognitionSession extends ChangeNotifier {
   RecognitionSession({
     required this.api,
@@ -136,12 +137,19 @@ class RecognitionSession extends ChangeNotifier {
     final seen = _jobs.any(
       (j) =>
           j.source == JobSource.live &&
-          j.state != JobState.failed &&
+          !_worthRetrying(j) &&
           hammingDistance(j.hash, hash) <= duplicateBits,
     );
     if (seen) return null;
     return _add(RecognitionJob._(_nextId++, JobSource.live, jpeg, hash));
   }
+
+  /// A failed cover is sent again only when another try could succeed: the
+  /// service was unreachable, or the photo was unclear. An album the
+  /// backend did not know stays unknown, so it is not resent each time the
+  /// camera sees it again.
+  bool _worthRetrying(RecognitionJob job) =>
+      job.state == JobState.failed && job.failure != JobFailure.notRecognised;
 
   /// Queues a photo the user took or imported, ahead of live requests.
   RecognitionJob addManual(
