@@ -1,4 +1,4 @@
-# S1-06: initial album data model
+# Album data model (S1-06, extended in S2-05)
 
 > As a developer, I want an initial album data model so that recognition
 > results can be represented consistently.
@@ -13,7 +13,10 @@ SQLite, the local-storage stack named in the project README. Source files:
 | Album and track access | `mobile/lib/data/local/daos/album_dao.dart` |
 | List and duplicate access | `mobile/lib/data/local/daos/list_dao.dart` |
 | Sample data | `mobile/lib/data/local/seed_data.dart` |
-| Tests | `mobile/test/data/album_data_model_test.dart` |
+| Rows to Album Details view model (S2-05) | `mobile/lib/data/local/album_mapping.dart` |
+| Backend release JSON to rows (S2-05) | `mobile/lib/data/release_metadata.dart` |
+| Metadata cache (S2-05) | `mobile/lib/data/release_repository.dart` |
+| Tests | `mobile/test/data/album_data_model_test.dart`, `mobile/test/data/extended_metadata_test.dart` |
 
 The editable diagram is [`jamscan_ERdiagram.drawio`](jamscan_ERdiagram.drawio),
 openable with [draw.io](https://app.diagrams.net/).
@@ -63,6 +66,14 @@ erDiagram
         TEXT discogs_format "nullable"
         TEXT metadata_source
         DATETIME fetched_at
+        TEXT cover_url "nullable, v2"
+        TEXT label "nullable, v2"
+        TEXT catalog_number "nullable, v2"
+        TEXT genres "JSON array, v2"
+        TEXT styles "JSON array, v2"
+        REAL rating "nullable, v2"
+        TEXT preview_status "nullable, v2"
+    }
     }
     TRACKS {
         INTEGER id PK
@@ -72,6 +83,9 @@ erDiagram
         INTEGER popularity_rank "nullable"
         TEXT preview_url "nullable"
         TEXT preview_source "nullable"
+        TEXT position_label "nullable, v2"
+        INTEGER duration_seconds "nullable, v2"
+    }
     }
     HISTORY_ENTRIES {
         INTEGER id PK
@@ -149,6 +163,66 @@ file to application storage and keeping a path keeps rows small and lets the
 image be loaded lazily by the UI. A null path means no cover has been
 downloaded yet.
 
+### 5. Extended metadata (S2-05, schema version 2)
+
+The Album Details screen needs the metadata the backend's
+`GET /releases/{release_id}` (S2-04) returns. The columns follow that
+response field by field:
+
+| Backend field | Column | Notes |
+| --- | --- | --- |
+| `cover_url` | `albums.cover_url` | Remote URL; `cover_path` stays the local file (decision 4) |
+| `label` | `albums.label` | First label of the release |
+| `catalog_number` | `albums.catalog_number` | |
+| `genres`, `styles` | `albums.genres`, `albums.styles` | JSON arrays, default `[]` |
+| `rating` | `albums.rating` | Discogs community average out of 5 |
+| `preview_status` | `albums.preview_status` | `available`, `partial`, `none_found`, `service_unavailable` |
+| `tracks[].position` | `tracks.position_label` | Printed position such as `A1` |
+| `tracks[].duration` | `tracks.duration_seconds` | `4:13` stored as 253 |
+| `tracks[].preview_url` | `tracks.preview_url` | `preview_source` is set to `itunes` |
+
+- **Genres and styles as JSON text** rather than separate tables: they are
+  only ever read together with their album, and no screen filters by them
+  yet. `StringListConverter` maps the column to `List<String>`. If filtering
+  by genre is needed later, an `album_genres` table can be added with a
+  migration.
+- **Two track positions.** `tracks.position` stays an integer (1, 2, 3) and
+  keeps ordering the tracklist and the unique key. Vinyl positions such as
+  `A1` or `B2` do not sort as numbers, so the printed value is stored
+  separately in `position_label`.
+- **Durations in seconds** so they can be summed and formatted by the UI.
+  Discogs often leaves durations blank; those are stored as null.
+
+### 6. Caching fetched metadata (S2-05)
+
+`ReleaseRepository.load(releaseId)` puts the database in front of the
+backend:
+
+1. A release with `metadata_source = 'discogs'` fetched less than **7 days**
+   ago (`fetched_at`) is returned from the database without a request.
+2. Otherwise the backend is called, the response is stored with
+   `AlbumDao.saveRelease`, and the stored rows are returned.
+3. If the request fails and an older copy exists, the old copy is returned
+   with `isStale = true`; the screen shows it as partial metadata
+   (`Album.isPartial`). With no copy, the error goes to the caller, which
+   shows the "unavailable" state.
+
+Seven days because a pressing's Discogs data rarely changes, while iTunes
+preview links can. Refreshing keeps `cover_path`, so a downloaded cover is
+not lost. The HTTP call itself is injected (`ReleaseFetcher`) and is wired up
+by the integration story (S2-07).
+
+`AlbumWithTracks.toViewModel()` converts stored rows into the `Album` view
+model of `lib/models/album.dart`, which Album Details already uses.
+
+### Migration from version 1
+
+`schemaVersion` is 2. `AppDatabase.migration.onUpgrade` adds the nine
+columns above with `ALTER TABLE ... ADD COLUMN` when upgrading from 1, so
+albums, tracks, lists and history already on a device are kept. A test
+creates a version 1 database, opens it with the current code, and checks
+both the old rows and the new columns.
+
 ## Nullability note
 
 The diagram marks only `release_id`, `album_id` in history, and the preview and
@@ -193,3 +267,18 @@ flutter build apk --debug
 The tests cover storing and reloading an album with its tracks, re-saving the
 same release, rejection of a duplicate list entry, cascade on album delete,
 cascade on user delete, and the seed data.
+
+
+S2-05 adds tests for parsing the backend response and durations, storing and
+reading every new field, default values, keeping a downloaded cover on
+refresh, the cache rules (fresh, expired, forced refresh, offline fallback,
+error without cache, replacing seed data), mapping to the view model, and the
+version 1 to 2 migration.
+
+## Still missing for the wireframes
+
+From the list in [UI_SHELL.md](UI_SHELL.md): `albums.country` and the rating
+count (not in the S2-04 response yet), and the `list_entries` ghost flag and
+"looking for" note. Tracks have no popularity rank from Discogs or iTunes, so
+`Album.topTracks` stays empty for fetched albums until a source for it is
+chosen.

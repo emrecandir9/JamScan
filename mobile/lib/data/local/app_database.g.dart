@@ -818,6 +818,77 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta(
+    'coverUrl',
+  );
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+    'cover_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _catalogNumberMeta = const VerificationMeta(
+    'catalogNumber',
+  );
+  @override
+  late final GeneratedColumn<String> catalogNumber = GeneratedColumn<String>(
+    'catalog_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> genres =
+      GeneratedColumn<String>(
+        'genres',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<String>>($AlbumsTable.$convertergenres);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> styles =
+      GeneratedColumn<String>(
+        'styles',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<String>>($AlbumsTable.$converterstyles);
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<double> rating = GeneratedColumn<double>(
+    'rating',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _previewStatusMeta = const VerificationMeta(
+    'previewStatus',
+  );
+  @override
+  late final GeneratedColumn<String> previewStatus = GeneratedColumn<String>(
+    'preview_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -829,6 +900,13 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     discogsFormat,
     metadataSource,
     fetchedAt,
+    coverUrl,
+    label,
+    catalogNumber,
+    genres,
+    styles,
+    rating,
+    previewStatus,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -903,6 +981,42 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
         fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
       );
     }
+    if (data.containsKey('cover_url')) {
+      context.handle(
+        _coverUrlMeta,
+        coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta),
+      );
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('catalog_number')) {
+      context.handle(
+        _catalogNumberMeta,
+        catalogNumber.isAcceptableOrUnknown(
+          data['catalog_number']!,
+          _catalogNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    }
+    if (data.containsKey('preview_status')) {
+      context.handle(
+        _previewStatusMeta,
+        previewStatus.isAcceptableOrUnknown(
+          data['preview_status']!,
+          _previewStatusMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -948,6 +1062,38 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}fetched_at'],
       )!,
+      coverUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_url'],
+      ),
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      ),
+      catalogNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalog_number'],
+      ),
+      genres: $AlbumsTable.$convertergenres.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}genres'],
+        )!,
+      ),
+      styles: $AlbumsTable.$converterstyles.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}styles'],
+        )!,
+      ),
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}rating'],
+      ),
+      previewStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}preview_status'],
+      ),
     );
   }
 
@@ -955,6 +1101,11 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   $AlbumsTable createAlias(String alias) {
     return $AlbumsTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<String>, String> $convertergenres =
+      const StringListConverter();
+  static TypeConverter<List<String>, String> $converterstyles =
+      const StringListConverter();
 }
 
 class Album extends DataClass implements Insertable<Album> {
@@ -966,7 +1117,23 @@ class Album extends DataClass implements Insertable<Album> {
   final String? coverPath;
   final String? discogsFormat;
   final String metadataSource;
+
+  /// When the metadata was last fetched; used for cache freshness (S2-05).
   final DateTime fetchedAt;
+
+  /// Remote cover image URL from Discogs. [coverPath] is the local copy.
+  final String? coverUrl;
+  final String? label;
+  final String? catalogNumber;
+  final List<String> genres;
+  final List<String> styles;
+
+  /// Discogs community rating out of 5, or null when nobody rated it.
+  final double? rating;
+
+  /// Preview lookup result from the backend: `available`, `partial`,
+  /// `none_found` or `service_unavailable`.
+  final String? previewStatus;
   const Album({
     required this.id,
     this.releaseId,
@@ -977,6 +1144,13 @@ class Album extends DataClass implements Insertable<Album> {
     this.discogsFormat,
     required this.metadataSource,
     required this.fetchedAt,
+    this.coverUrl,
+    this.label,
+    this.catalogNumber,
+    required this.genres,
+    required this.styles,
+    this.rating,
+    this.previewStatus,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -998,6 +1172,31 @@ class Album extends DataClass implements Insertable<Album> {
     }
     map['metadata_source'] = Variable<String>(metadataSource);
     map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    if (!nullToAbsent || coverUrl != null) {
+      map['cover_url'] = Variable<String>(coverUrl);
+    }
+    if (!nullToAbsent || label != null) {
+      map['label'] = Variable<String>(label);
+    }
+    if (!nullToAbsent || catalogNumber != null) {
+      map['catalog_number'] = Variable<String>(catalogNumber);
+    }
+    {
+      map['genres'] = Variable<String>(
+        $AlbumsTable.$convertergenres.toSql(genres),
+      );
+    }
+    {
+      map['styles'] = Variable<String>(
+        $AlbumsTable.$converterstyles.toSql(styles),
+      );
+    }
+    if (!nullToAbsent || rating != null) {
+      map['rating'] = Variable<double>(rating);
+    }
+    if (!nullToAbsent || previewStatus != null) {
+      map['preview_status'] = Variable<String>(previewStatus);
+    }
     return map;
   }
 
@@ -1018,6 +1217,23 @@ class Album extends DataClass implements Insertable<Album> {
           : Value(discogsFormat),
       metadataSource: Value(metadataSource),
       fetchedAt: Value(fetchedAt),
+      coverUrl: coverUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverUrl),
+      label: label == null && nullToAbsent
+          ? const Value.absent()
+          : Value(label),
+      catalogNumber: catalogNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogNumber),
+      genres: Value(genres),
+      styles: Value(styles),
+      rating: rating == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rating),
+      previewStatus: previewStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(previewStatus),
     );
   }
 
@@ -1036,6 +1252,13 @@ class Album extends DataClass implements Insertable<Album> {
       discogsFormat: serializer.fromJson<String?>(json['discogsFormat']),
       metadataSource: serializer.fromJson<String>(json['metadataSource']),
       fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+      coverUrl: serializer.fromJson<String?>(json['coverUrl']),
+      label: serializer.fromJson<String?>(json['label']),
+      catalogNumber: serializer.fromJson<String?>(json['catalogNumber']),
+      genres: serializer.fromJson<List<String>>(json['genres']),
+      styles: serializer.fromJson<List<String>>(json['styles']),
+      rating: serializer.fromJson<double?>(json['rating']),
+      previewStatus: serializer.fromJson<String?>(json['previewStatus']),
     );
   }
   @override
@@ -1051,6 +1274,13 @@ class Album extends DataClass implements Insertable<Album> {
       'discogsFormat': serializer.toJson<String?>(discogsFormat),
       'metadataSource': serializer.toJson<String>(metadataSource),
       'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+      'coverUrl': serializer.toJson<String?>(coverUrl),
+      'label': serializer.toJson<String?>(label),
+      'catalogNumber': serializer.toJson<String?>(catalogNumber),
+      'genres': serializer.toJson<List<String>>(genres),
+      'styles': serializer.toJson<List<String>>(styles),
+      'rating': serializer.toJson<double?>(rating),
+      'previewStatus': serializer.toJson<String?>(previewStatus),
     };
   }
 
@@ -1064,6 +1294,13 @@ class Album extends DataClass implements Insertable<Album> {
     Value<String?> discogsFormat = const Value.absent(),
     String? metadataSource,
     DateTime? fetchedAt,
+    Value<String?> coverUrl = const Value.absent(),
+    Value<String?> label = const Value.absent(),
+    Value<String?> catalogNumber = const Value.absent(),
+    List<String>? genres,
+    List<String>? styles,
+    Value<double?> rating = const Value.absent(),
+    Value<String?> previewStatus = const Value.absent(),
   }) => Album(
     id: id ?? this.id,
     releaseId: releaseId.present ? releaseId.value : this.releaseId,
@@ -1076,6 +1313,17 @@ class Album extends DataClass implements Insertable<Album> {
         : this.discogsFormat,
     metadataSource: metadataSource ?? this.metadataSource,
     fetchedAt: fetchedAt ?? this.fetchedAt,
+    coverUrl: coverUrl.present ? coverUrl.value : this.coverUrl,
+    label: label.present ? label.value : this.label,
+    catalogNumber: catalogNumber.present
+        ? catalogNumber.value
+        : this.catalogNumber,
+    genres: genres ?? this.genres,
+    styles: styles ?? this.styles,
+    rating: rating.present ? rating.value : this.rating,
+    previewStatus: previewStatus.present
+        ? previewStatus.value
+        : this.previewStatus,
   );
   Album copyWithCompanion(AlbumsCompanion data) {
     return Album(
@@ -1092,6 +1340,17 @@ class Album extends DataClass implements Insertable<Album> {
           ? data.metadataSource.value
           : this.metadataSource,
       fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+      coverUrl: data.coverUrl.present ? data.coverUrl.value : this.coverUrl,
+      label: data.label.present ? data.label.value : this.label,
+      catalogNumber: data.catalogNumber.present
+          ? data.catalogNumber.value
+          : this.catalogNumber,
+      genres: data.genres.present ? data.genres.value : this.genres,
+      styles: data.styles.present ? data.styles.value : this.styles,
+      rating: data.rating.present ? data.rating.value : this.rating,
+      previewStatus: data.previewStatus.present
+          ? data.previewStatus.value
+          : this.previewStatus,
     );
   }
 
@@ -1106,7 +1365,14 @@ class Album extends DataClass implements Insertable<Album> {
           ..write('coverPath: $coverPath, ')
           ..write('discogsFormat: $discogsFormat, ')
           ..write('metadataSource: $metadataSource, ')
-          ..write('fetchedAt: $fetchedAt')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('label: $label, ')
+          ..write('catalogNumber: $catalogNumber, ')
+          ..write('genres: $genres, ')
+          ..write('styles: $styles, ')
+          ..write('rating: $rating, ')
+          ..write('previewStatus: $previewStatus')
           ..write(')'))
         .toString();
   }
@@ -1122,6 +1388,13 @@ class Album extends DataClass implements Insertable<Album> {
     discogsFormat,
     metadataSource,
     fetchedAt,
+    coverUrl,
+    label,
+    catalogNumber,
+    genres,
+    styles,
+    rating,
+    previewStatus,
   );
   @override
   bool operator ==(Object other) =>
@@ -1135,7 +1408,14 @@ class Album extends DataClass implements Insertable<Album> {
           other.coverPath == this.coverPath &&
           other.discogsFormat == this.discogsFormat &&
           other.metadataSource == this.metadataSource &&
-          other.fetchedAt == this.fetchedAt);
+          other.fetchedAt == this.fetchedAt &&
+          other.coverUrl == this.coverUrl &&
+          other.label == this.label &&
+          other.catalogNumber == this.catalogNumber &&
+          other.genres == this.genres &&
+          other.styles == this.styles &&
+          other.rating == this.rating &&
+          other.previewStatus == this.previewStatus);
 }
 
 class AlbumsCompanion extends UpdateCompanion<Album> {
@@ -1148,6 +1428,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
   final Value<String?> discogsFormat;
   final Value<String> metadataSource;
   final Value<DateTime> fetchedAt;
+  final Value<String?> coverUrl;
+  final Value<String?> label;
+  final Value<String?> catalogNumber;
+  final Value<List<String>> genres;
+  final Value<List<String>> styles;
+  final Value<double?> rating;
+  final Value<String?> previewStatus;
   const AlbumsCompanion({
     this.id = const Value.absent(),
     this.releaseId = const Value.absent(),
@@ -1158,6 +1445,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     this.discogsFormat = const Value.absent(),
     this.metadataSource = const Value.absent(),
     this.fetchedAt = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.label = const Value.absent(),
+    this.catalogNumber = const Value.absent(),
+    this.genres = const Value.absent(),
+    this.styles = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.previewStatus = const Value.absent(),
   });
   AlbumsCompanion.insert({
     this.id = const Value.absent(),
@@ -1169,6 +1463,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     this.discogsFormat = const Value.absent(),
     this.metadataSource = const Value.absent(),
     this.fetchedAt = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.label = const Value.absent(),
+    this.catalogNumber = const Value.absent(),
+    this.genres = const Value.absent(),
+    this.styles = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.previewStatus = const Value.absent(),
   }) : artist = Value(artist),
        title = Value(title);
   static Insertable<Album> custom({
@@ -1181,6 +1482,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     Expression<String>? discogsFormat,
     Expression<String>? metadataSource,
     Expression<DateTime>? fetchedAt,
+    Expression<String>? coverUrl,
+    Expression<String>? label,
+    Expression<String>? catalogNumber,
+    Expression<String>? genres,
+    Expression<String>? styles,
+    Expression<double>? rating,
+    Expression<String>? previewStatus,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1192,6 +1500,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       if (discogsFormat != null) 'discogs_format': discogsFormat,
       if (metadataSource != null) 'metadata_source': metadataSource,
       if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (label != null) 'label': label,
+      if (catalogNumber != null) 'catalog_number': catalogNumber,
+      if (genres != null) 'genres': genres,
+      if (styles != null) 'styles': styles,
+      if (rating != null) 'rating': rating,
+      if (previewStatus != null) 'preview_status': previewStatus,
     });
   }
 
@@ -1205,6 +1520,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     Value<String?>? discogsFormat,
     Value<String>? metadataSource,
     Value<DateTime>? fetchedAt,
+    Value<String?>? coverUrl,
+    Value<String?>? label,
+    Value<String?>? catalogNumber,
+    Value<List<String>>? genres,
+    Value<List<String>>? styles,
+    Value<double?>? rating,
+    Value<String?>? previewStatus,
   }) {
     return AlbumsCompanion(
       id: id ?? this.id,
@@ -1216,6 +1538,13 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       discogsFormat: discogsFormat ?? this.discogsFormat,
       metadataSource: metadataSource ?? this.metadataSource,
       fetchedAt: fetchedAt ?? this.fetchedAt,
+      coverUrl: coverUrl ?? this.coverUrl,
+      label: label ?? this.label,
+      catalogNumber: catalogNumber ?? this.catalogNumber,
+      genres: genres ?? this.genres,
+      styles: styles ?? this.styles,
+      rating: rating ?? this.rating,
+      previewStatus: previewStatus ?? this.previewStatus,
     );
   }
 
@@ -1249,6 +1578,31 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     if (fetchedAt.present) {
       map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
     }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (catalogNumber.present) {
+      map['catalog_number'] = Variable<String>(catalogNumber.value);
+    }
+    if (genres.present) {
+      map['genres'] = Variable<String>(
+        $AlbumsTable.$convertergenres.toSql(genres.value),
+      );
+    }
+    if (styles.present) {
+      map['styles'] = Variable<String>(
+        $AlbumsTable.$converterstyles.toSql(styles.value),
+      );
+    }
+    if (rating.present) {
+      map['rating'] = Variable<double>(rating.value);
+    }
+    if (previewStatus.present) {
+      map['preview_status'] = Variable<String>(previewStatus.value);
+    }
     return map;
   }
 
@@ -1263,7 +1617,14 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
           ..write('coverPath: $coverPath, ')
           ..write('discogsFormat: $discogsFormat, ')
           ..write('metadataSource: $metadataSource, ')
-          ..write('fetchedAt: $fetchedAt')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('label: $label, ')
+          ..write('catalogNumber: $catalogNumber, ')
+          ..write('genres: $genres, ')
+          ..write('styles: $styles, ')
+          ..write('rating: $rating, ')
+          ..write('previewStatus: $previewStatus')
           ..write(')'))
         .toString();
   }
@@ -1354,6 +1715,28 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _positionLabelMeta = const VerificationMeta(
+    'positionLabel',
+  );
+  @override
+  late final GeneratedColumn<String> positionLabel = GeneratedColumn<String>(
+    'position_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1363,6 +1746,8 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     popularityRank,
     previewUrl,
     previewSource,
+    positionLabel,
+    durationSeconds,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1427,6 +1812,24 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         ),
       );
     }
+    if (data.containsKey('position_label')) {
+      context.handle(
+        _positionLabelMeta,
+        positionLabel.isAcceptableOrUnknown(
+          data['position_label']!,
+          _positionLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1468,6 +1871,14 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         DriftSqlType.string,
         data['${effectivePrefix}preview_source'],
       ),
+      positionLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}position_label'],
+      ),
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      ),
     );
   }
 
@@ -1485,6 +1896,12 @@ class Track extends DataClass implements Insertable<Track> {
   final int? popularityRank;
   final String? previewUrl;
   final String? previewSource;
+
+  /// Position as printed on the release, for example `A1` (schema v2).
+  final String? positionLabel;
+
+  /// Track length in seconds, or null when Discogs has none (schema v2).
+  final int? durationSeconds;
   const Track({
     required this.id,
     required this.albumId,
@@ -1493,6 +1910,8 @@ class Track extends DataClass implements Insertable<Track> {
     this.popularityRank,
     this.previewUrl,
     this.previewSource,
+    this.positionLabel,
+    this.durationSeconds,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1509,6 +1928,12 @@ class Track extends DataClass implements Insertable<Track> {
     }
     if (!nullToAbsent || previewSource != null) {
       map['preview_source'] = Variable<String>(previewSource);
+    }
+    if (!nullToAbsent || positionLabel != null) {
+      map['position_label'] = Variable<String>(positionLabel);
+    }
+    if (!nullToAbsent || durationSeconds != null) {
+      map['duration_seconds'] = Variable<int>(durationSeconds);
     }
     return map;
   }
@@ -1528,6 +1953,12 @@ class Track extends DataClass implements Insertable<Track> {
       previewSource: previewSource == null && nullToAbsent
           ? const Value.absent()
           : Value(previewSource),
+      positionLabel: positionLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(positionLabel),
+      durationSeconds: durationSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationSeconds),
     );
   }
 
@@ -1544,6 +1975,8 @@ class Track extends DataClass implements Insertable<Track> {
       popularityRank: serializer.fromJson<int?>(json['popularityRank']),
       previewUrl: serializer.fromJson<String?>(json['previewUrl']),
       previewSource: serializer.fromJson<String?>(json['previewSource']),
+      positionLabel: serializer.fromJson<String?>(json['positionLabel']),
+      durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
     );
   }
   @override
@@ -1557,6 +1990,8 @@ class Track extends DataClass implements Insertable<Track> {
       'popularityRank': serializer.toJson<int?>(popularityRank),
       'previewUrl': serializer.toJson<String?>(previewUrl),
       'previewSource': serializer.toJson<String?>(previewSource),
+      'positionLabel': serializer.toJson<String?>(positionLabel),
+      'durationSeconds': serializer.toJson<int?>(durationSeconds),
     };
   }
 
@@ -1568,6 +2003,8 @@ class Track extends DataClass implements Insertable<Track> {
     Value<int?> popularityRank = const Value.absent(),
     Value<String?> previewUrl = const Value.absent(),
     Value<String?> previewSource = const Value.absent(),
+    Value<String?> positionLabel = const Value.absent(),
+    Value<int?> durationSeconds = const Value.absent(),
   }) => Track(
     id: id ?? this.id,
     albumId: albumId ?? this.albumId,
@@ -1580,6 +2017,12 @@ class Track extends DataClass implements Insertable<Track> {
     previewSource: previewSource.present
         ? previewSource.value
         : this.previewSource,
+    positionLabel: positionLabel.present
+        ? positionLabel.value
+        : this.positionLabel,
+    durationSeconds: durationSeconds.present
+        ? durationSeconds.value
+        : this.durationSeconds,
   );
   Track copyWithCompanion(TracksCompanion data) {
     return Track(
@@ -1596,6 +2039,12 @@ class Track extends DataClass implements Insertable<Track> {
       previewSource: data.previewSource.present
           ? data.previewSource.value
           : this.previewSource,
+      positionLabel: data.positionLabel.present
+          ? data.positionLabel.value
+          : this.positionLabel,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
     );
   }
 
@@ -1608,7 +2057,9 @@ class Track extends DataClass implements Insertable<Track> {
           ..write('title: $title, ')
           ..write('popularityRank: $popularityRank, ')
           ..write('previewUrl: $previewUrl, ')
-          ..write('previewSource: $previewSource')
+          ..write('previewSource: $previewSource, ')
+          ..write('positionLabel: $positionLabel, ')
+          ..write('durationSeconds: $durationSeconds')
           ..write(')'))
         .toString();
   }
@@ -1622,6 +2073,8 @@ class Track extends DataClass implements Insertable<Track> {
     popularityRank,
     previewUrl,
     previewSource,
+    positionLabel,
+    durationSeconds,
   );
   @override
   bool operator ==(Object other) =>
@@ -1633,7 +2086,9 @@ class Track extends DataClass implements Insertable<Track> {
           other.title == this.title &&
           other.popularityRank == this.popularityRank &&
           other.previewUrl == this.previewUrl &&
-          other.previewSource == this.previewSource);
+          other.previewSource == this.previewSource &&
+          other.positionLabel == this.positionLabel &&
+          other.durationSeconds == this.durationSeconds);
 }
 
 class TracksCompanion extends UpdateCompanion<Track> {
@@ -1644,6 +2099,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
   final Value<int?> popularityRank;
   final Value<String?> previewUrl;
   final Value<String?> previewSource;
+  final Value<String?> positionLabel;
+  final Value<int?> durationSeconds;
   const TracksCompanion({
     this.id = const Value.absent(),
     this.albumId = const Value.absent(),
@@ -1652,6 +2109,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.popularityRank = const Value.absent(),
     this.previewUrl = const Value.absent(),
     this.previewSource = const Value.absent(),
+    this.positionLabel = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
   });
   TracksCompanion.insert({
     this.id = const Value.absent(),
@@ -1661,6 +2120,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.popularityRank = const Value.absent(),
     this.previewUrl = const Value.absent(),
     this.previewSource = const Value.absent(),
+    this.positionLabel = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
   }) : albumId = Value(albumId),
        position = Value(position),
        title = Value(title);
@@ -1672,6 +2133,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Expression<int>? popularityRank,
     Expression<String>? previewUrl,
     Expression<String>? previewSource,
+    Expression<String>? positionLabel,
+    Expression<int>? durationSeconds,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1681,6 +2144,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
       if (popularityRank != null) 'popularity_rank': popularityRank,
       if (previewUrl != null) 'preview_url': previewUrl,
       if (previewSource != null) 'preview_source': previewSource,
+      if (positionLabel != null) 'position_label': positionLabel,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
     });
   }
 
@@ -1692,6 +2157,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Value<int?>? popularityRank,
     Value<String?>? previewUrl,
     Value<String?>? previewSource,
+    Value<String?>? positionLabel,
+    Value<int?>? durationSeconds,
   }) {
     return TracksCompanion(
       id: id ?? this.id,
@@ -1701,6 +2168,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
       popularityRank: popularityRank ?? this.popularityRank,
       previewUrl: previewUrl ?? this.previewUrl,
       previewSource: previewSource ?? this.previewSource,
+      positionLabel: positionLabel ?? this.positionLabel,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
     );
   }
 
@@ -1728,6 +2197,12 @@ class TracksCompanion extends UpdateCompanion<Track> {
     if (previewSource.present) {
       map['preview_source'] = Variable<String>(previewSource.value);
     }
+    if (positionLabel.present) {
+      map['position_label'] = Variable<String>(positionLabel.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
     return map;
   }
 
@@ -1740,7 +2215,9 @@ class TracksCompanion extends UpdateCompanion<Track> {
           ..write('title: $title, ')
           ..write('popularityRank: $popularityRank, ')
           ..write('previewUrl: $previewUrl, ')
-          ..write('previewSource: $previewSource')
+          ..write('previewSource: $previewSource, ')
+          ..write('positionLabel: $positionLabel, ')
+          ..write('durationSeconds: $durationSeconds')
           ..write(')'))
         .toString();
   }
@@ -3632,6 +4109,13 @@ typedef $$AlbumsTableCreateCompanionBuilder = AlbumsCompanion Function({
   Value<String?> discogsFormat,
   Value<String> metadataSource,
   Value<DateTime> fetchedAt,
+  Value<String?> coverUrl,
+  Value<String?> label,
+  Value<String?> catalogNumber,
+  Value<List<String>> genres,
+  Value<List<String>> styles,
+  Value<double?> rating,
+  Value<String?> previewStatus,
 });
 typedef $$AlbumsTableUpdateCompanionBuilder = AlbumsCompanion Function({
   Value<int> id,
@@ -3643,6 +4127,13 @@ typedef $$AlbumsTableUpdateCompanionBuilder = AlbumsCompanion Function({
   Value<String?> discogsFormat,
   Value<String> metadataSource,
   Value<DateTime> fetchedAt,
+  Value<String?> coverUrl,
+  Value<String?> label,
+  Value<String?> catalogNumber,
+  Value<List<String>> genres,
+  Value<List<String>> styles,
+  Value<double?> rating,
+  Value<String?> previewStatus,
 });
 
 final class $$AlbumsTableReferences
@@ -3756,6 +4247,43 @@ class $$AlbumsTableFilterComposer
 
   ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
     column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverUrl => $composableBuilder(
+    column: $table.coverUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogNumber => $composableBuilder(
+    column: $table.catalogNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get genres => $composableBuilder(
+    column: $table.genres,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get styles => $composableBuilder(
+    column: $table.styles,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get previewStatus => $composableBuilder(
+    column: $table.previewStatus,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3888,6 +4416,41 @@ class $$AlbumsTableOrderingComposer
     column: $table.fetchedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get coverUrl => $composableBuilder(
+    column: $table.coverUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogNumber => $composableBuilder(
+    column: $table.catalogNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get genres => $composableBuilder(
+    column: $table.genres,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get styles => $composableBuilder(
+    column: $table.styles,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get previewStatus => $composableBuilder(
+    column: $table.previewStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AlbumsTableAnnotationComposer
@@ -3929,6 +4492,31 @@ class $$AlbumsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get fetchedAt =>
       $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get coverUrl =>
+      $composableBuilder(column: $table.coverUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get catalogNumber => $composableBuilder(
+    column: $table.catalogNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get genres =>
+      $composableBuilder(column: $table.genres, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get styles =>
+      $composableBuilder(column: $table.styles, builder: (column) => column);
+
+  GeneratedColumn<double> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<String> get previewStatus => $composableBuilder(
+    column: $table.previewStatus,
+    builder: (column) => column,
+  );
 
   Expression<T> tracksRefs<T extends Object>(
     Expression<T> Function($$TracksTableAnnotationComposer a) f,
@@ -4047,6 +4635,13 @@ class $$AlbumsTableTableManager
                 Value<String?> discogsFormat = const Value.absent(),
                 Value<String> metadataSource = const Value.absent(),
                 Value<DateTime> fetchedAt = const Value.absent(),
+                Value<String?> coverUrl = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> catalogNumber = const Value.absent(),
+                Value<List<String>> genres = const Value.absent(),
+                Value<List<String>> styles = const Value.absent(),
+                Value<double?> rating = const Value.absent(),
+                Value<String?> previewStatus = const Value.absent(),
               }) => AlbumsCompanion(
                 id: id,
                 releaseId: releaseId,
@@ -4057,6 +4652,13 @@ class $$AlbumsTableTableManager
                 discogsFormat: discogsFormat,
                 metadataSource: metadataSource,
                 fetchedAt: fetchedAt,
+                coverUrl: coverUrl,
+                label: label,
+                catalogNumber: catalogNumber,
+                genres: genres,
+                styles: styles,
+                rating: rating,
+                previewStatus: previewStatus,
               ),
           createCompanionCallback:
               ({
@@ -4069,6 +4671,13 @@ class $$AlbumsTableTableManager
                 Value<String?> discogsFormat = const Value.absent(),
                 Value<String> metadataSource = const Value.absent(),
                 Value<DateTime> fetchedAt = const Value.absent(),
+                Value<String?> coverUrl = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> catalogNumber = const Value.absent(),
+                Value<List<String>> genres = const Value.absent(),
+                Value<List<String>> styles = const Value.absent(),
+                Value<double?> rating = const Value.absent(),
+                Value<String?> previewStatus = const Value.absent(),
               }) => AlbumsCompanion.insert(
                 id: id,
                 releaseId: releaseId,
@@ -4079,6 +4688,13 @@ class $$AlbumsTableTableManager
                 discogsFormat: discogsFormat,
                 metadataSource: metadataSource,
                 fetchedAt: fetchedAt,
+                coverUrl: coverUrl,
+                label: label,
+                catalogNumber: catalogNumber,
+                genres: genres,
+                styles: styles,
+                rating: rating,
+                previewStatus: previewStatus,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4193,6 +4809,8 @@ typedef $$TracksTableCreateCompanionBuilder = TracksCompanion Function({
   Value<int?> popularityRank,
   Value<String?> previewUrl,
   Value<String?> previewSource,
+  Value<String?> positionLabel,
+  Value<int?> durationSeconds,
 });
 typedef $$TracksTableUpdateCompanionBuilder = TracksCompanion Function({
   Value<int> id,
@@ -4202,6 +4820,8 @@ typedef $$TracksTableUpdateCompanionBuilder = TracksCompanion Function({
   Value<int?> popularityRank,
   Value<String?> previewUrl,
   Value<String?> previewSource,
+  Value<String?> positionLabel,
+  Value<int?> durationSeconds,
 });
 
 final class $$TracksTableReferences
@@ -4262,6 +4882,16 @@ class $$TracksTableFilterComposer
 
   ColumnFilters<String> get previewSource => $composableBuilder(
     column: $table.previewSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get positionLabel => $composableBuilder(
+    column: $table.positionLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4328,6 +4958,16 @@ class $$TracksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get positionLabel => $composableBuilder(
+    column: $table.positionLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$AlbumsTableOrderingComposer get albumId {
     final $$AlbumsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4382,6 +5022,16 @@ class $$TracksTableAnnotationComposer
 
   GeneratedColumn<String> get previewSource => $composableBuilder(
     column: $table.previewSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get positionLabel => $composableBuilder(
+    column: $table.positionLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => column,
   );
 
@@ -4444,6 +5094,8 @@ class $$TracksTableTableManager
                 Value<int?> popularityRank = const Value.absent(),
                 Value<String?> previewUrl = const Value.absent(),
                 Value<String?> previewSource = const Value.absent(),
+                Value<String?> positionLabel = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
               }) => TracksCompanion(
                 id: id,
                 albumId: albumId,
@@ -4452,6 +5104,8 @@ class $$TracksTableTableManager
                 popularityRank: popularityRank,
                 previewUrl: previewUrl,
                 previewSource: previewSource,
+                positionLabel: positionLabel,
+                durationSeconds: durationSeconds,
               ),
           createCompanionCallback:
               ({
@@ -4462,6 +5116,8 @@ class $$TracksTableTableManager
                 Value<int?> popularityRank = const Value.absent(),
                 Value<String?> previewUrl = const Value.absent(),
                 Value<String?> previewSource = const Value.absent(),
+                Value<String?> positionLabel = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
               }) => TracksCompanion.insert(
                 id: id,
                 albumId: albumId,
@@ -4470,6 +5126,8 @@ class $$TracksTableTableManager
                 popularityRank: popularityRank,
                 previewUrl: previewUrl,
                 previewSource: previewSource,
+                positionLabel: positionLabel,
+                durationSeconds: durationSeconds,
               ),
           withReferenceMapper: (p0) => p0
               .map(
