@@ -8,7 +8,6 @@ from fastapi import APIRouter, HTTPException, Path, Query
 from app.services.discogs import DiscogsError, get_release, search_releases
 from app.services.itunes import ITunesError, get_track_preview
 
-
 router = APIRouter(tags=["releases"])
 
 MAX_PREVIEW_LOOKUPS = 5
