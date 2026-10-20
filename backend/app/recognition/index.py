@@ -55,9 +55,26 @@ class ReferenceIndex:
         self.entries = entries
         self.model_id = model_id
         self.preprocess_version = preprocess_version
+        self._rows_by_release: dict[str, list[int]] = {}
+        for row, entry in enumerate(entries):
+            self._rows_by_release.setdefault(entry.release_id, []).append(row)
 
     def __len__(self) -> int:
         return len(self.entries)
+
+    def release_ids(self) -> list[str]:
+        """Distinct release IDs in index order (first reference image wins)."""
+        return list(self._rows_by_release)
+
+    def get(self, release_id: str) -> ReferenceEntry | None:
+        """Return the entry for ``release_id``, or ``None`` if it is not indexed."""
+        rows = self._rows_by_release.get(release_id)
+        return self.entries[rows[0]] if rows else None
+
+    def vectors_for(self, release_id: str) -> np.ndarray:
+        """All reference embeddings of one release (empty if unknown)."""
+        rows = self._rows_by_release.get(release_id, [])
+        return self.embeddings[rows]
 
     @property
     def dimension(self) -> int:
