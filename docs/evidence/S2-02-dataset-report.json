@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "dataset": "data\\reference",
+  "rows": 154,
+  "releases": 154,
+  "images_checked": 154,
+  "fingerprint": "b6a027c1bbf1694a86be4fadac5d5b5632942a54e0169bde2d739fa35e54e190",
+  "index": {
+    "model_id": "dinov2-small/cls/v1",
+    "preprocess_version": "square-224-imagenet-v1",
+    "count": 154,
+    "releases": 154,
+    "dimension": 384
+  },
+  "confusable_pairs": [],
+  "errors": [],
+  "warnings": [
+    "covers.csv line 9: image images/6148575.jpg is small (222 px shortest side)",
+    "covers.csv line 72: image images/20254366.jpg is small (225 px shortest side)",
+    "covers.csv line 82: image images/11146748.jpg is small (280 px shortest side)"
+  ]
+}
