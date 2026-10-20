@@ -151,3 +151,26 @@ def test_empty_track_title() -> None:
     with httpx.Client() as client:
         with pytest.raises(ValueError):
             get_track_preview(client, "Daft Punk", "")
+
+
+def test_collaborating_artists_match() -> None:
+    song = make_song()
+    song["artistName"] = "Daft Punk, Pharrell Williams & Nile Rodgers"
+
+    with httpx.Client(
+        transport=httpx.MockTransport(
+            lambda _: httpx.Response(
+                200,
+                json={"results": [song]},
+            )
+        )
+    ) as client:
+        result = get_track_preview(
+            client,
+            "Daft Punk",
+            "Get Lucky",
+            "Random Access Memories",
+        )
+
+    assert result is not None
+    assert result["preview_url"] == PREVIEW_URL

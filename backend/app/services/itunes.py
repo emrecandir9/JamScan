@@ -1,5 +1,6 @@
 """iTunes Search API integration for JamSCAN track previews."""
 
+import re
 import unicodedata
 from typing import Any
 from urllib.parse import urlsplit
@@ -23,6 +24,21 @@ def _normalize(value: str) -> str:
     value = unicodedata.normalize("NFKD", value.casefold())
     value = "".join(char for char in value if not unicodedata.combining(char))
     return " ".join("".join(char if char.isalnum() else " " for char in value).split())
+
+
+def _artist_matches(expected: str, candidate: str) -> bool:
+    """Match an artist credited alone or first among collaborators."""
+    if _normalize(expected) == _normalize(candidate):
+        return True
+
+    primary_artist = re.split(
+        r",|&|\s+feat\.?\s+|\s+featuring\s+",
+        candidate,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )[0]
+
+    return _normalize(expected) == _normalize(primary_artist)
 
 
 def _is_apple_url(value: object, domains: tuple[str, ...]) -> bool:
@@ -93,7 +109,6 @@ def get_track_preview(
     if not isinstance(data, dict) or not isinstance(data.get("results"), list):
         raise ITunesError("iTunes returned an invalid search response")
 
-    expected_artist = _normalize(artist)
     expected_track = _normalize(track_title)
     expected_album = _normalize(album_title)
 
@@ -113,7 +128,7 @@ def get_track_preview(
             continue
 
         if (
-            _normalize(artist_name) != expected_artist
+            not _artist_matches(artist, artist_name)
             or _normalize(song_name) != expected_track
         ):
             continue
