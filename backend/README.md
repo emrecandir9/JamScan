@@ -1,10 +1,24 @@
 # JamSCAN backend
 
-Minimal FastAPI starter for S1-01. The only application endpoint is
-`GET /health`, which returns `{"status":"ok"}` without external services.
+FastAPI backend for JamSCAN. `GET /health` returns `{"status":"ok"}` without
+external services. `POST /recognitions` identifies an album cover (S2-03).
 
 See [setup](../docs/SETUP.md) for Python, Docker, and check commands, and
 [contribution guidelines](../CONTRIBUTING.md) for team conventions.
+
+## Album-cover recognition (S2-03)
+
+Recognition needs a model and a reference index, which are not stored in Git:
+
+```bash
+python -m scripts.download_model
+python -m scripts.fetch_dev_covers   # needs DISCOGS_TOKEN
+python -m scripts.build_index
+```
+
+Without them the API still starts and `/recognitions` returns `503`. See
+[S2-03](../docs/S2-03.md) for the API contract, the dataset format, settings,
+and validation results.
 
 ## External API validation (S1-05)
 
