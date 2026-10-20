@@ -3,15 +3,10 @@
 import os
 
 import httpx
-from fastapi import APIRouter, File, HTTPException, Path, Query, UploadFile
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from app.services.discogs import DiscogsError, get_release, search_releases
 from app.services.itunes import ITunesError, get_track_preview
-from app.services.recognition import (
-    RecognitionError,
-    RecognitionResult,
-    recognize_image,
-)
 
 
 router = APIRouter(tags=["releases"])
@@ -102,65 +97,3 @@ def get_release_details(
     album["preview_lookup_limit"] = MAX_PREVIEW_LOOKUPS
 
     return album
-
-
-# Maximum accepted album-cover image size: 10 MiB.
-MAX_IMAGE_BYTES = 10 * 1024 * 1024
-
-
-def _detect_image_type(data: bytes) -> str | None:
-    """Identify common image formats from their file signatures."""
-    if data.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-
-    if data.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-
-    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return "image/webp"
-
-    return None
-
-
-@router.post("/recognize", response_model=RecognitionResult)
-def recognize_album(image: UploadFile = File(...)) -> RecognitionResult:
-    """Validate and forward an album-cover image for recognition."""
-    supported_types = {"image/jpeg", "image/png", "image/webp"}
-
-    if image.content_type not in supported_types:
-        raise HTTPException(
-            status_code=415,
-            detail="Unsupported image format",
-        )
-
-    # Read only up to the configured size limit plus one byte.
-    image_data = image.file.read(MAX_IMAGE_BYTES + 1)
-
-    if not image_data:
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded image is empty",
-        )
-
-    if len(image_data) > MAX_IMAGE_BYTES:
-        raise HTTPException(
-            status_code=413,
-            detail="Uploaded image is too large",
-        )
-
-    # Do not trust only the content type declared by the client.
-    detected_type = _detect_image_type(image_data)
-
-    if detected_type != image.content_type:
-        raise HTTPException(
-            status_code=415,
-            detail="Invalid image format",
-        )
-
-    try:
-        return recognize_image(image_data)
-    except RecognitionError as exc:
-        raise HTTPException(
-            status_code=exc.status_code,
-            detail=str(exc),
-        ) from exc
