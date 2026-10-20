@@ -4,13 +4,21 @@ import 'services/camera_capture_service.dart';
 import 'services/catalog_service.dart';
 import 'services/gallery_import_service.dart';
 import 'services/live_scanner.dart';
+import 'services/queued_recognition_service.dart';
+import 'services/recognition_api.dart';
 import 'services/recognition_service.dart';
 import 'state/auth_controller.dart';
 import 'state/history_store.dart';
 import 'state/library_store.dart';
 import 'state/preview_player.dart';
+import 'state/recognition_session.dart';
 import 'state/settings_controller.dart';
 import 'state/shell_controller.dart';
+
+/// Base URL of the JamSCAN backend, from
+/// `--dart-define=JAMSCAN_API_URL=http://10.0.2.2:8000` (the host machine as
+/// seen from the Android emulator). Empty means offline mock services.
+const apiUrl = String.fromEnvironment('JAMSCAN_API_URL');
 
 /// Services and app-wide state shared by every screen.
 ///
@@ -26,15 +34,29 @@ class AppDependencies {
     SettingsController? settings,
     PreviewPlayer? player,
     LiveScanner? liveScanner,
+    RecognitionSession? session,
   }) : auth = auth ?? AuthController(),
        camera = camera ?? CameraCaptureService(),
        gallery = gallery ?? GalleryImportService(),
-       recognition = recognition ?? MockRecognitionService(),
        catalog = catalog ?? MockCatalogService(),
        settings = settings ?? SettingsController(),
        player = player ?? PreviewPlayer(),
        liveScanner = liveScanner ?? CameraLiveScanner(),
+       session =
+           session ??
+           RecognitionSession(
+             api: apiUrl.isEmpty
+                 ? MockRecognitionApi()
+                 : HttpRecognitionApi(Uri.parse(apiUrl)),
+           ),
        shell = ShellController() {
+    // Without a backend the scripted mock keeps every scan-flow screen
+    // reachable; with one, photos share the live recognition queue.
+    this.recognition =
+        recognition ??
+        (apiUrl.isEmpty
+            ? MockRecognitionService()
+            : QueuedRecognitionService(this.session));
     library = LibraryStore(this.auth);
     history = HistoryStore(this.auth);
   }
@@ -42,17 +64,21 @@ class AppDependencies {
   final AuthController auth;
   final CameraCaptureService camera;
   final GalleryImportService gallery;
-  final RecognitionService recognition;
+  late final RecognitionService recognition;
   final CatalogService catalog;
   final SettingsController settings;
   final PreviewPlayer player;
   final LiveScanner liveScanner;
+
+  /// Recognition jobs of the current scanning session (S2-11).
+  final RecognitionSession session;
   final ShellController shell;
   late final LibraryStore library;
   late final HistoryStore history;
 
   void dispose() {
     liveScanner.dispose();
+    session.dispose();
     player.dispose();
     library.dispose();
     history.dispose();

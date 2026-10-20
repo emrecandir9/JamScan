@@ -11,6 +11,7 @@ import 'package:jamscan/services/gallery_import_service.dart';
 import 'package:jamscan/services/live_scanner.dart';
 import 'package:jamscan/services/recognition_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
+import 'package:jamscan/state/recognition_session.dart';
 import 'package:jamscan/state/settings_controller.dart';
 
 /// Camera service that never touches the platform.
@@ -70,9 +71,11 @@ AppDependencies testDependencies({
   Duration stepDelay = const Duration(milliseconds: 10),
   MockCatalogService? catalog,
   LiveScanner? liveScanner,
+  RecognitionSession? session,
 }) {
   return AppDependencies(
     liveScanner: liveScanner ?? UnavailableLiveScanner(),
+    session: session,
     auth: AuthController(signedInAsDemo: signedIn),
     camera: camera ?? FakeCamera(),
     gallery: gallery ?? FakeGallery(),

@@ -77,7 +77,10 @@ class AlbumDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${album.formatDescription} · ${album.label}',
+                      [
+                        album.formatDescription,
+                        album.label,
+                      ].where((part) => part.isNotEmpty).join(' · '),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.textMuted,
                       ),
@@ -107,6 +110,13 @@ class AlbumDetailsScreen extends StatelessWidget {
             ),
           ],
           const _SectionTitle('Tracklist'),
+          if (album.tracks.isEmpty)
+            Text(
+              'No tracklist yet',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textMuted,
+              ),
+            ),
           ListenableBuilder(
             listenable: player,
             builder: (context, _) => Column(
@@ -124,20 +134,26 @@ class AlbumDetailsScreen extends StatelessWidget {
           ),
           const Divider(height: 32),
           const _SectionTitle('Pressing details', top: 0),
-          _DetailRow(label: 'Label', value: album.label),
-          _DetailRow(label: 'Catalog #', value: album.catalogNumber),
-          _DetailRow(label: 'Country', value: album.country),
-          _DetailRow(label: 'Format', value: album.pressingFormat),
-          const Divider(height: 32),
-          const _SectionTitle('Genres & styles', top: 0),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final genre in album.genres)
-                Chip(label: Text(genre), backgroundColor: Colors.white),
-            ],
-          ),
+          // Rows without a value are left out (partial details).
+          for (final (label, value) in [
+            ('Label', album.label),
+            ('Catalog #', album.catalogNumber),
+            ('Country', album.country),
+            ('Format', album.pressingFormat),
+          ])
+            if (value.isNotEmpty) _DetailRow(label: label, value: value),
+          if (album.genres.isNotEmpty) ...[
+            const Divider(height: 32),
+            const _SectionTitle('Genres & styles', top: 0),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final genre in album.genres)
+                  Chip(label: Text(genre), backgroundColor: Colors.white),
+              ],
+            ),
+          ],
           const Divider(height: 32),
           const _SectionTitle('Community rating', top: 0),
           _Rating(rating: album.rating, count: album.ratingCount),
