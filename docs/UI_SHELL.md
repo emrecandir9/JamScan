@@ -84,8 +84,9 @@ The wireframes need fields the drift tables (DATA_MODEL.md) do not have yet:
 
 - `ListEntries`: a ghost flag (`is_ghost`) and a "looking for" note
 - `Albums`: label, catalogue number, country, genres and styles, community
-  rating and rating count
-- `Tracks`: duration and printed position (`A1`, `B2`)
+  rating and rating count (all except country and rating count added in
+  S2-05, see DATA_MODEL.md)
+- `Tracks`: duration and printed position (`A1`, `B2`) (added in S2-05)
 
 ## Relationship to S1-03 and S1-04
 
