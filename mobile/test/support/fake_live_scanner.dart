@@ -62,6 +62,14 @@ class FakeLiveScanner extends LiveScanner {
     }
   }
 
+  int accessRequests = 0;
+
+  @override
+  Future<void> requestAccess() async {
+    accessRequests++;
+    await start();
+  }
+
   @override
   Future<String?> takePicture() async {
     pictureCalls++;

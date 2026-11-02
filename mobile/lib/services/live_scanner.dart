@@ -46,8 +46,14 @@ abstract class LiveScanner extends ChangeNotifier {
   double get averageAnalysisMs;
   int get analysedFrames;
 
+  /// Opens the camera. After the user refused camera access, this does
+  /// not ask again; [requestAccess] does.
   Future<void> start();
   Future<void> stop();
+
+  /// Asks for camera access again (the user tapped "Allow camera access"),
+  /// then starts.
+  Future<void> requestAccess();
 
   /// Stops analysing frames (for example while another page is on top)
   /// without closing the camera.
@@ -84,6 +90,8 @@ class UnavailableLiveScanner extends LiveScanner {
   @override
   Future<void> stop() async {}
   @override
+  Future<void> requestAccess() async {}
+  @override
   Future<String?> takePicture() async => null;
 }
 
@@ -105,7 +113,15 @@ class CameraLiveScanner extends LiveScanner {
   DateTime _lastFrame = DateTime.fromMillisecondsSinceEpoch(0);
   int _frames = 0;
   int _totalMs = 0;
-  Future<void>? _starting;
+
+  /// Whether the camera should be open. Start and stop requests only set
+  /// this; [_reconcile] then opens or closes the camera, one step at a
+  /// time, until it matches. Lifecycle events can arrive in any order (a
+  /// permission dialog pauses the app in the middle of a start), and the
+  /// last request always wins.
+  bool _wanted = false;
+  bool _refused = false;
+  Future<void>? _transition;
 
   @override
   LiveScannerState get state => _state;
@@ -145,48 +161,97 @@ class CameraLiveScanner extends LiveScanner {
   }
 
   @override
-  Future<void> start() => _starting ??= _start().whenComplete(() {
-    _starting = null;
-  });
+  Future<void> start() {
+    _wanted = true;
+    return _reconcile();
+  }
 
-  Future<void> _start() async {
-    if (_state == LiveScannerState.running) return;
-    _setState(LiveScannerState.starting);
+  @override
+  Future<void> stop() {
+    _wanted = false;
+    return _reconcile();
+  }
 
-    final permission = await Permission.camera.request();
-    if (permission.isPermanentlyDenied) {
-      return _setState(LiveScannerState.permissionPermanentlyDenied);
+  @override
+  Future<void> requestAccess() {
+    _refused = false;
+    return start();
+  }
+
+  Future<void> _reconcile() =>
+      _transition ??= _settle().whenComplete(() => _transition = null);
+
+  Future<void> _settle() async {
+    while (true) {
+      if (_wanted && _controller == null && !_refused) {
+        if (!await _open()) return;
+      } else if (!_wanted && _controller != null) {
+        await _close();
+      } else {
+        return;
+      }
     }
-    if (!permission.isGranted) {
-      return _setState(LiveScannerState.permissionDenied);
+  }
+
+  /// Returns false when the camera cannot be opened (no permission, no
+  /// camera), so [_settle] stops trying until the user acts.
+  Future<bool> _open() async {
+    _setState(LiveScannerState.starting);
+    final permission = await Permission.camera.request();
+    if (permission.isPermanentlyDenied || !permission.isGranted) {
+      _refused = true;
+      _setState(
+        permission.isPermanentlyDenied
+            ? LiveScannerState.permissionPermanentlyDenied
+            : LiveScannerState.permissionDenied,
+      );
+      return false;
+    }
+    if (!_wanted) {
+      _setState(LiveScannerState.idle);
+      return true;
     }
 
     try {
       final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        _setState(LiveScannerState.unavailable);
+        return false;
+      }
       final back = cameras.where(
         (c) => c.lensDirection == CameraLensDirection.back,
       );
-      if (cameras.isEmpty) return _setState(LiveScannerState.unavailable);
       final controller = CameraController(
         back.isNotEmpty ? back.first : cameras.first,
         ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.yuv420,
       );
+      _controller = controller;
       await controller.initialize();
       _worker ??= await _AnalysisWorker.spawn();
-      _controller = controller;
       await controller.startImageStream(_onImage);
       _setState(LiveScannerState.running);
+      return true;
     } on CameraException catch (error) {
       debugPrint('Live camera unavailable: ${error.code}');
       await _disposeController();
+      final denied = error.code == 'CameraAccessDenied';
+      _refused = denied;
       _setState(
-        error.code == 'CameraAccessDenied'
+        denied
             ? LiveScannerState.permissionDenied
             : LiveScannerState.unavailable,
       );
+      return false;
     }
+  }
+
+  Future<void> _close() async {
+    await _disposeController();
+    _covers = const [];
+    _worker?.reset();
+    _setState(LiveScannerState.idle);
   }
 
   void _onImage(CameraImage image) {
@@ -215,15 +280,6 @@ class CameraLiveScanner extends LiveScanner {
           }
         })
         .whenComplete(() => _busy = false);
-  }
-
-  @override
-  Future<void> stop() async {
-    await _starting;
-    await _disposeController();
-    _covers = const [];
-    _worker?.reset();
-    if (_state == LiveScannerState.running) _setState(LiveScannerState.idle);
   }
 
   @override
