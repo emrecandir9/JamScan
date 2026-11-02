@@ -1,0 +1,88 @@
+{
+  "queries": 168,
+  "known_releases": 128,
+  "top1_accuracy": 1.0,
+  "top5_accuracy": 1.0,
+  "thresholds": {
+    "match": 0.75,
+    "margin": 0.05,
+    "review": 0.6
+  },
+  "decisions": {
+    "match": 115,
+    "needs_review": 3,
+    "no_match": 0,
+    "poor_quality": 10
+  },
+  "correct_matches": 115,
+  "wrong_matches": [],
+  "needs_review_containing_truth": 3,
+  "user_reaches_correct_album": 0.9219,
+  "score_when_correct": {
+    "min": 0.695,
+    "p10": 0.808,
+    "median": 0.892,
+    "p90": 0.936,
+    "max": 0.967
+  },
+  "best_wrong_score": {
+    "min": 0.181,
+    "p10": 0.28,
+    "median": 0.444,
+    "p90": 0.573,
+    "max": 0.656
+  },
+  "latency_ms": {
+    "mean": 19.0,
+    "p95": 21.6
+  },
+  "threshold_sweep": [
+    {
+      "match_threshold": 0.65,
+      "auto_matched": 128,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.7,
+      "auto_matched": 127,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.75,
+      "auto_matched": 124,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.8,
+      "auto_matched": 118,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.85,
+      "auto_matched": 98,
+      "wrong_matches": 0
+    }
+  ],
+  "unknown_albums": {
+    "queries": 40,
+    "decisions": {
+      "match": 0,
+      "needs_review": 1,
+      "no_match": 38,
+      "poor_quality": 1
+    },
+    "best_score": {
+      "min": 0.139,
+      "p10": 0.21,
+      "median": 0.387,
+      "p90": 0.56,
+      "max": 0.623
+    }
+  },
+  "misses": [],
+  "model_id": "dinov2-small/cls/v1",
+  "index_size": 32,
+  "held_out_releases": 10,
+  "source": "Simulated phone photos (4 per cover) of the 42 dev covers; 10 releases hidden from the index to test unknown albums.",
+  "evaluated_at": "2026-10-19"
+}
