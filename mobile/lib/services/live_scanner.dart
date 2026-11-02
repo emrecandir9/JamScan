@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../vision/best_frame_selector.dart';
 import '../vision/camera_frame.dart';
 import '../vision/frame_analyzer.dart';
 
@@ -30,6 +31,10 @@ abstract class LiveScanner extends ChangeNotifier {
 
   /// Covers in the latest analysed frame, in sensor coordinates.
   List<CoverSnapshot> get covers;
+
+  /// Best views of covers picked for recognition (S2-10), one per cover
+  /// while it stays in view.
+  Stream<CoverCapture> get captures;
 
   /// The camera's `sensorOrientation` in degrees.
   int get sensorDegrees;
@@ -63,6 +68,8 @@ class UnavailableLiveScanner extends LiveScanner {
   @override
   List<CoverSnapshot> get covers => const [];
   @override
+  Stream<CoverCapture> get captures => const Stream.empty();
+  @override
   int get sensorDegrees => 90;
   @override
   double get previewAspect => 3 / 4;
@@ -92,6 +99,7 @@ class CameraLiveScanner extends LiveScanner {
   CameraController? _controller;
   _AnalysisWorker? _worker;
   List<CoverSnapshot> _covers = const [];
+  final _captures = StreamController<CoverCapture>.broadcast();
   bool _busy = false;
   bool _paused = false;
   DateTime _lastFrame = DateTime.fromMillisecondsSinceEpoch(0);
@@ -105,6 +113,8 @@ class CameraLiveScanner extends LiveScanner {
   CameraController? get controller => _controller;
   @override
   List<CoverSnapshot> get covers => _covers;
+  @override
+  Stream<CoverCapture> get captures => _captures.stream;
   @override
   int get sensorDegrees => _controller?.description.sensorOrientation ?? 90;
   @override
@@ -185,7 +195,7 @@ class CameraLiveScanner extends LiveScanner {
     if (now.difference(_lastFrame) < frameInterval) return;
     _lastFrame = now;
     _busy = true;
-    final frame = _copyFrame(image);
+    final frame = _copyFrame(image, sensorDegrees);
     _worker!
         .analyze(frame)
         .then((analysis) {
@@ -194,11 +204,13 @@ class CameraLiveScanner extends LiveScanner {
           if (kDebugMode && _frames % 25 == 1) {
             debugPrint(
               'Live analysis: frame $_frames, ${image.width}x${image.height}, '
-              '${analysis.elapsedMs} ms, ${analysis.covers.length} covers',
+              '${analysis.elapsedMs} ms, ${analysis.covers.length} covers, '
+              '${analysis.covers.where((c) => c.captured).length} captured',
             );
           }
           if (!_paused) {
             _covers = analysis.covers;
+            analysis.captures.forEach(_captures.add);
             notifyListeners();
           }
         })
@@ -250,13 +262,14 @@ class CameraLiveScanner extends LiveScanner {
   void dispose() {
     _disposeController();
     _worker?.close();
+    _captures.close();
     super.dispose();
   }
 }
 
 /// Copies the plugin's plane buffers, which are only valid during the
 /// stream callback.
-CameraFrame _copyFrame(CameraImage image) {
+CameraFrame _copyFrame(CameraImage image, int rotationDegrees) {
   final y = image.planes[0];
   final u = image.planes[1];
   final v = image.planes[2];
@@ -269,6 +282,7 @@ CameraFrame _copyFrame(CameraImage image) {
     v: Uint8List.fromList(v.bytes),
     uvRowStride: u.bytesPerRow,
     uvPixelStride: u.bytesPerPixel ?? 1,
+    rotationDegrees: rotationDegrees,
   );
 }
 

@@ -313,7 +313,8 @@ class CoverDetector {
       if (!overlaps) kept.add(candidate);
       if (kept.length == config.maxCovers) break;
     }
-    final margin = 2.0;
+    // Corners this close to the frame edge may hide a cut-off cover.
+    final margin = 0.015 * math.max(width, height);
     return [
       for (final k in kept)
         CoverDetection(
