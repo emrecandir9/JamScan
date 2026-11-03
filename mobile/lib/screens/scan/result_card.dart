@@ -42,16 +42,9 @@ class _ResultCardState extends State<ResultCard> {
 
   void _onPageChanged(PreviewPlayer player, List<Track> tracks, int index) {
     setState(() => _page = index);
-    if (player.isPlaying) {
+    if (player.wantsPlay) {
       player.play(widget.album, tracks[index]);
     }
-  }
-
-  void _retryPreviews() {
-    showAppSnackBar(
-      ScaffoldMessenger.of(context),
-      'Previews are still unavailable for this album.',
-    );
   }
 
   @override
@@ -73,7 +66,7 @@ class _ResultCardState extends State<ResultCard> {
         builder: (context, _) {
           final Widget previews;
           if (tracks.isEmpty) {
-            previews = _NoPreviews(onRetry: _retryPreviews);
+            previews = const _NoPreviews();
           } else if (_expanded) {
             previews = Flexible(
               child: _TrackList(
@@ -146,6 +139,35 @@ class _ResultCardState extends State<ResultCard> {
               ),
               const SizedBox(height: 14),
               previews,
+              if (player.album?.id == album.id && player.error != null)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        player.error!,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => player.play(album, player.track!),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              if (player.album?.id == album.id && player.isLoading)
+                const Text(
+                  'Loading preview…',
+                  style: TextStyle(color: Colors.white),
+                ),
+              if (player.album?.id == album.id)
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  onPressed: player.stop,
+                  child: const Text('Stop preview'),
+                ),
               Row(
                 children: [
                   TextButton(
@@ -267,13 +289,15 @@ class _PreviewTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = player.isCurrent(album, track);
-    final playing = player.isPlayingTrack(album, track);
+    final playing = player.isCurrent(album, track) && player.wantsPlay;
     final position = current ? player.position : Duration.zero;
     final parts = ['Track ${index + 1} of $total'];
-    if (index == 0) {
+    if (track.popularityRank == 1) {
       parts.add('Popular');
     }
-    if (playing) {
+    if (current && player.isLoading) {
+      parts.add('loading');
+    } else if (player.isPlayingTrack(album, track)) {
       parts.add('playing');
     }
 
@@ -414,7 +438,7 @@ class _TrackList extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Top tracks · by popularity',
+                      'Available previews',
                       style: TextStyle(
                         color: AppColors.onDarkSecondary,
                         fontSize: 15,
@@ -434,7 +458,8 @@ class _TrackList extends StatelessWidget {
               itemBuilder: (context, index) {
                 final track = tracks[index];
                 final current = player.isCurrent(album, track);
-                final playing = player.isPlayingTrack(album, track);
+                final playing =
+                    player.isCurrent(album, track) && player.wantsPlay;
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 6),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -498,9 +523,7 @@ class _TrackList extends StatelessWidget {
 }
 
 class _NoPreviews extends StatelessWidget {
-  const _NoPreviews({required this.onRetry});
-
-  final VoidCallback onRetry;
+  const _NoPreviews();
 
   @override
   Widget build(BuildContext context) {
@@ -533,7 +556,7 @@ class _NoPreviews extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Preview service unavailable',
+                      'Album information is still available',
                       style: TextStyle(
                         color: AppColors.onDarkSecondary,
                         fontSize: 14,
@@ -543,14 +566,6 @@ class _NoPreviews extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: onRetry,
-              style: TextButton.styleFrom(foregroundColor: Colors.white),
-              child: const Text('RETRY'),
-            ),
           ),
         ],
       ),

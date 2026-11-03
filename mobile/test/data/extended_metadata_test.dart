@@ -330,6 +330,11 @@ void main() {
       expect(album.tracks[1].duration, Duration.zero);
       expect(album.tracks.map((t) => t.hasPreview), [true, false, false]);
       expect(album.previewsAvailable, isTrue);
+      expect(
+        album.tracks.first.previewUrl,
+        'https://audio.itunes.example/a1.m4a',
+      );
+      expect(album.topTracks, [album.tracks.first]);
       expect(album.isPartial, isFalse);
       expect(stored.toViewModel(isPartial: true).isPartial, isTrue);
     });

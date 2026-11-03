@@ -12,6 +12,7 @@ import 'package:jamscan/services/live_scanner.dart';
 import 'package:jamscan/services/recognition_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
 import 'package:jamscan/state/settings_controller.dart';
+import 'package:jamscan/state/preview_player.dart';
 
 /// Camera service that never touches the platform.
 class FakeCamera extends CameraCaptureService {
@@ -61,7 +62,7 @@ CameraCaptureResult capturedPhoto() {
 }
 
 /// Dependencies with fakes and fast mocks. Autoplay is off so no preview
-/// timer runs unless a test starts one.
+/// audio starts unless a test requests it.
 AppDependencies testDependencies({
   bool signedIn = false,
   FakeCamera? camera,
@@ -70,8 +71,10 @@ AppDependencies testDependencies({
   Duration stepDelay = const Duration(milliseconds: 10),
   MockCatalogService? catalog,
   LiveScanner? liveScanner,
+  PreviewPlayer? player,
 }) {
   return AppDependencies(
+    player: player,
     liveScanner: liveScanner ?? UnavailableLiveScanner(),
     auth: AuthController(signedInAsDemo: signedIn),
     camera: camera ?? FakeCamera(),

@@ -74,7 +74,9 @@ The lockfile is enforced in CI, so this change adds no dependencies.
 - **Live camera preview.** The viewfinder is a placeholder. The shutter opens
   the system camera through the existing `CameraCaptureService` (S1-03).
   Adding the `camera` package would make the feed live.
-- **Audio.** Previews are simulated (see `PreviewPlayer`).
+- **Audio.** S2-06 adds real HTTPS preview playback with `just_audio` (see
+  [S2-06.md](S2-06.md)). Mock tracks without URLs show unavailable; S2-07
+  supplies real backend metadata to the app.
 - **Cover images.** Covers are neutral placeholders until Discogs images are
   fetched.
 

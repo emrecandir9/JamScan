@@ -14,7 +14,7 @@ extension AlbumWithTracksMapping on AlbumWithTracks {
           title: track.title,
           duration: Duration(seconds: track.durationSeconds ?? 0),
           popularityRank: track.popularityRank,
-          hasPreview: track.previewUrl != null,
+          previewUrl: track.previewUrl,
         ),
     ];
     return model.Album(
