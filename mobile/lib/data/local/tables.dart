@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 /// Kind of list a user keeps. Stored as text, as in the ER diagram.
@@ -5,6 +7,30 @@ enum ListType { collection, wishlist }
 
 /// How a history entry was created. Stored as text, as in the ER diagram.
 enum HistoryKind { scan, manualSearch }
+
+/// Stores a list of strings (genres, styles) as a JSON array in one column.
+///
+/// Genres and styles are only ever read together with their album, so a
+/// separate table would add joins without a query that needs it.
+class StringListConverter extends TypeConverter<List<String>, String> {
+  const StringListConverter();
+
+  @override
+  List<String> fromSql(String fromDb) {
+    try {
+      final decoded = jsonDecode(fromDb);
+      if (decoded is List) {
+        return decoded.whereType<String>().toList();
+      }
+    } on FormatException {
+      // Fall through: a corrupt value reads as an empty list.
+    }
+    return const [];
+  }
+
+  @override
+  String toSql(List<String> value) => jsonEncode(value);
+}
 
 /// Application user. Local-only for now; authentication is a later story.
 class Users extends Table {
@@ -38,7 +64,29 @@ class Albums extends Table {
   TextColumn get discogsFormat => text().nullable()();
   TextColumn get metadataSource =>
       text().withDefault(const Constant('manual'))();
+
+  /// When the metadata was last fetched; used for cache freshness (S2-05).
   DateTimeColumn get fetchedAt => dateTime().withDefault(currentDateAndTime)();
+
+  // Extended Discogs metadata, added in schema version 2 (S2-05).
+
+  /// Remote cover image URL from Discogs. [coverPath] is the local copy.
+  TextColumn get coverUrl => text().nullable()();
+  TextColumn get label => text().nullable()();
+  TextColumn get catalogNumber => text().nullable()();
+  TextColumn get genres => text()
+      .map(const StringListConverter())
+      .withDefault(const Constant('[]'))();
+  TextColumn get styles => text()
+      .map(const StringListConverter())
+      .withDefault(const Constant('[]'))();
+
+  /// Discogs community rating out of 5, or null when nobody rated it.
+  RealColumn get rating => real().nullable()();
+
+  /// Preview lookup result from the backend: `available`, `partial`,
+  /// `none_found` or `service_unavailable`.
+  TextColumn get previewStatus => text().nullable()();
 }
 
 /// One track of an album's tracklist.
@@ -51,6 +99,12 @@ class Tracks extends Table {
   IntColumn get popularityRank => integer().nullable()();
   TextColumn get previewUrl => text().nullable()();
   TextColumn get previewSource => text().nullable()();
+
+  /// Position as printed on the release, for example `A1` (schema v2).
+  TextColumn get positionLabel => text().nullable()();
+
+  /// Track length in seconds, or null when Discogs has none (schema v2).
+  IntColumn get durationSeconds => integer().nullable()();
 
   /// A tracklist cannot contain the same position twice.
   @override

@@ -12,7 +12,7 @@ anyio==4.15.1
     # via
     #   httpx
     #   starlette
-certifi==2026.10.19
+certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
@@ -20,6 +20,8 @@ click==8.5.0
     # via uvicorn
 fastapi==0.141.1
     # via jamscan-backend (pyproject.toml)
+flatbuffers==25.12.19
+    # via onnxruntime
 h11==0.16.0
     # via
     #   httpcore
@@ -32,10 +34,24 @@ idna==3.20
     # via
     #   anyio
     #   httpx
+numpy==2.5.4
+    # via
+    #   jamscan-backend (pyproject.toml)
+    #   onnxruntime
+onnxruntime==1.31.0
+    # via jamscan-backend (pyproject.toml)
+packaging==26.3
+    # via onnxruntime
+pillow==12.3.0
+    # via jamscan-backend (pyproject.toml)
+protobuf==7.36.2
+    # via onnxruntime
 pydantic==2.13.5
     # via fastapi
 pydantic-core==2.46.5
     # via pydantic
+python-multipart==0.0.32
+    # via jamscan-backend (pyproject.toml)
 starlette==1.7.0
     # via fastapi
 typing-extensions==4.16.0

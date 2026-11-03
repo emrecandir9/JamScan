@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'services/camera_capture_service.dart';
 import 'services/catalog_service.dart';
 import 'services/gallery_import_service.dart';
+import 'services/live_scanner.dart';
 import 'services/recognition_service.dart';
 import 'state/auth_controller.dart';
 import 'state/history_store.dart';
@@ -24,6 +25,7 @@ class AppDependencies {
     CatalogService? catalog,
     SettingsController? settings,
     PreviewPlayer? player,
+    LiveScanner? liveScanner,
   }) : auth = auth ?? AuthController(),
        camera = camera ?? CameraCaptureService(),
        gallery = gallery ?? GalleryImportService(),
@@ -31,6 +33,7 @@ class AppDependencies {
        catalog = catalog ?? MockCatalogService(),
        settings = settings ?? SettingsController(),
        player = player ?? PreviewPlayer(),
+       liveScanner = liveScanner ?? CameraLiveScanner(),
        shell = ShellController() {
     library = LibraryStore(this.auth);
     history = HistoryStore(this.auth);
@@ -43,11 +46,13 @@ class AppDependencies {
   final CatalogService catalog;
   final SettingsController settings;
   final PreviewPlayer player;
+  final LiveScanner liveScanner;
   final ShellController shell;
   late final LibraryStore library;
   late final HistoryStore history;
 
   void dispose() {
+    liveScanner.dispose();
     player.dispose();
     library.dispose();
     history.dispose();
