@@ -64,7 +64,7 @@ class _ScanFlowScreenState extends State<ScanFlowScreen> {
         }
       },
     );
-    if (!mounted) return;
+    if (!mounted || _closed) return;
 
     switch (outcome.kind) {
       case RecognitionOutcomeKind.match:
@@ -89,12 +89,35 @@ class _ScanFlowScreenState extends State<ScanFlowScreen> {
     _run(skipQualityCheck: true);
   }
 
-  void _finish(Album album) {
-    AppScope.of(context).history.recordScan(album);
-    Navigator.of(context).pop(ScanFlowResult.matched(album));
+  /// A candidate the user picked. Candidates carry only what recognition
+  /// returned, so the full details are loaded first ("Loading album
+  /// details" step); if that fails the partial album is shown.
+  Future<void> _choose(Album album) async {
+    if (!album.isPartial) {
+      _finish(album);
+      return;
+    }
+    setState(() {
+      _phase = _Phase.identifying;
+      _step = RecognitionStep.loadingDetails;
+    });
+    final full = await AppScope.of(context).releaseDetails.complete(album);
+    if (!mounted || _closed) return;
+    _finish(full);
   }
 
+  void _finish(Album album) {
+    if (_closed) return;
+    AppScope.of(context).history.recordScan(album);
+    _close(ScanFlowResult.matched(album));
+  }
+
+  /// Set once the screen pops, so late results cannot pop it twice.
+  bool _closed = false;
+
   void _close([ScanFlowResult? result]) {
+    if (_closed) return;
+    _closed = true;
     Navigator.of(context).pop(result);
   }
 
@@ -123,7 +146,7 @@ class _ScanFlowScreenState extends State<ScanFlowScreen> {
           onClose: _close,
           panel: _CandidatesPanel(
             candidates: _candidates,
-            onSelect: _finish,
+            onSelect: _choose,
             onSearch: () => _close(const ScanFlowResult.searchManually()),
             onRetake: () => _close(const ScanFlowResult.retake()),
           ),

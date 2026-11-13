@@ -10,6 +10,7 @@ import 'package:jamscan/services/catalog_service.dart';
 import 'package:jamscan/services/gallery_import_service.dart';
 import 'package:jamscan/services/live_scanner.dart';
 import 'package:jamscan/services/recognition_service.dart';
+import 'package:jamscan/services/release_details_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
 import 'package:jamscan/state/recognition_session.dart';
 import 'package:jamscan/state/settings_controller.dart';
@@ -70,19 +71,24 @@ AppDependencies testDependencies({
   FakeGallery? gallery,
   List<RecognitionOutcomeKind> script = const [RecognitionOutcomeKind.match],
   Duration stepDelay = const Duration(milliseconds: 10),
-  MockCatalogService? catalog,
+  CatalogService? catalog,
   LiveScanner? liveScanner,
   PreviewPlayer? player,
   RecognitionSession? session,
+  RecognitionService? recognition,
+  ReleaseDetailsService? releaseDetails,
 }) {
   return AppDependencies(
     player: player,
     liveScanner: liveScanner ?? UnavailableLiveScanner(),
     session: session,
+    releaseDetails: releaseDetails,
     auth: AuthController(signedInAsDemo: signedIn),
     camera: camera ?? FakeCamera(),
     gallery: gallery ?? FakeGallery(),
-    recognition: MockRecognitionService(script: script, stepDelay: stepDelay),
+    recognition:
+        recognition ??
+        MockRecognitionService(script: script, stepDelay: stepDelay),
     catalog:
         catalog ??
         MockCatalogService(latency: const Duration(milliseconds: 10)),

@@ -88,14 +88,27 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
     _search('');
   }
 
-  void _select(Album album) {
+  /// True while the selected hit's details load; further taps are ignored.
+  bool _opening = false;
+
+  /// Search hits carry only artist, title, year, format and cover, so the
+  /// full details (tracklist, previews, pressing) are loaded before the
+  /// camera page shows the album. If they cannot be loaded the partial
+  /// album is shown.
+  Future<void> _select(Album album) async {
+    if (_opening) return;
+    final deps = AppScope.of(context);
     final query = _query.text.trim();
-    AppScope.of(context).history.recordSearch(
+    setState(() => _opening = true);
+    final full = await deps.releaseDetails.complete(album);
+    if (!mounted) return;
+    setState(() => _opening = false);
+    deps.history.recordSearch(
       query,
-      album,
+      full,
       afterFailedScan: widget.args.afterFailedScan,
     );
-    Navigator.of(context).pop(album);
+    Navigator.of(context).pop(full);
   }
 
   @override
@@ -206,7 +219,7 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
             ),
             SizedBox(
               height: 4,
-              child: _loading
+              child: _loading || _opening
                   ? const LinearProgressIndicator(minHeight: 2)
                   : null,
             ),

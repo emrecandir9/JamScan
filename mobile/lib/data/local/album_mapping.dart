@@ -34,6 +34,7 @@ extension AlbumWithTracksMapping on AlbumWithTracks {
       rating: album.rating,
       isPartial: isPartial,
       previewsAvailable: viewTracks.any((track) => track.hasPreview),
+      coverUrl: album.coverUrl,
     );
   }
 }
