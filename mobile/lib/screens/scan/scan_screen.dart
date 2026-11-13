@@ -12,12 +12,15 @@ import '../../routing/app_navigation.dart';
 import '../../services/camera_capture_service.dart';
 import '../../services/gallery_import_service.dart';
 import '../../services/live_scanner.dart';
+import '../../state/recognition_session.dart';
+import '../../vision/best_frame_selector.dart';
 import '../../state/shell_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/album_art.dart';
 import '../../widgets/capture_card.dart';
 import '../../widgets/common.dart';
 import '../../widgets/live_camera_view.dart';
+import '../../widgets/live_results_panel.dart';
 import '../../widgets/sign_in_prompt.dart';
 import '../../widgets/taskbars.dart';
 import '../../widgets/viewfinder.dart';
@@ -50,6 +53,7 @@ class _ScanResult {
 class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   late final AppDependencies _deps = AppScope.of(context);
   late final LiveScanner _live = _deps.liveScanner;
+  StreamSubscription<CoverCapture>? _captures;
 
   /// Set when the camera permission was refused.
   CameraCaptureStatus? _permissionProblem;
@@ -62,6 +66,11 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _deps.shell.addListener(_onShellChanged);
     _live.addListener(_onLiveChanged);
+    // Covers picked from the live camera go straight to recognition
+    // (FR-04); the session drops ones it has already seen.
+    _captures = _live.captures.listen(
+      (capture) => _deps.session.addLiveCapture(capture.jpeg, capture.hash),
+    );
     if (_deps.shell.tab == AppTab.scan) {
       _live.start();
     }
@@ -75,6 +84,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _deps.shell.removeListener(_onShellChanged);
+    _captures?.cancel();
     _live
       ..removeListener(_onLiveChanged)
       ..stop();
@@ -249,8 +259,65 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     setState(() => _result = null);
   }
 
+  Future<void> _openLiveResult(Album album) async {
+    _deps.history.recordScan(album);
+    await AppNav.openAlbum(context, album);
+  }
+
+  /// Lets the user pick the right album when recognition was unsure
+  /// (FR-12), or fall back to manual search.
+  Future<void> _reviewLiveResult(RecognitionJob job) async {
+    final choice = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(24, 20, 24, 8),
+                child: Text(
+                  'Which one is it?',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+              ),
+              for (final (i, candidate) in job.candidates.indexed)
+                ListTile(
+                  key: Key('review.candidate.$i'),
+                  title: Text(candidate.title),
+                  subtitle: Text(
+                    [
+                      candidate.artist,
+                      if (candidate.year != null) '${candidate.year}',
+                    ].join(' · '),
+                  ),
+                  trailing: Text('${(candidate.score * 100).round()}% match'),
+                  onTap: () => Navigator.of(context).pop(i),
+                ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(-1),
+                child: const Text('None of these – search manually'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted || choice == null) return;
+    if (choice < 0) {
+      _deps.session.dismiss(job);
+      await _search(afterFailedScan: true);
+      return;
+    }
+    final album = await _deps.session.resolve(job, job.candidates[choice]);
+    if (!mounted) return;
+    await _openLiveResult(album);
+  }
+
   Future<void> _allowCamera() async {
-    await _live.start();
+    await _live.requestAccess();
     if (!mounted) return;
     if (_live.state == LiveScannerState.unavailable) {
       await _capture();
@@ -325,7 +392,29 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                       fit: StackFit.expand,
                       children: [
                         LiveCameraView(scanner: _live),
-                        _FramingArea(result: result, live: true),
+                        // The results strip has its own band above the
+                        // guide square, so it never covers an album being
+                        // framed. The band stays while empty, so the square
+                        // does not move when the first result arrives.
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: liveResultsStripHeight,
+                              // Hidden while a photo's result card is open.
+                              child: result == null
+                                  ? LiveResultsPanel(
+                                      session: _deps.session,
+                                      scanner: _live,
+                                      onOpen: _openLiveResult,
+                                      onReview: _reviewLiveResult,
+                                    )
+                                  : null,
+                            ),
+                            Expanded(
+                              child: _FramingArea(result: result, live: true),
+                            ),
+                          ],
+                        ),
                       ],
                     )
                   : _FramingArea(result: result),

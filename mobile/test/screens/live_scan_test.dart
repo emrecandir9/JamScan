@@ -59,6 +59,19 @@ void main() {
     expect(find.text('Open settings'), findsOneWidget);
   });
 
+  testWidgets('allowing access after a refusal asks again', (tester) async {
+    final live = FakeLiveScanner(startsAs: LiveScannerState.permissionDenied);
+    await pumpApp(tester, dependencies: testDependencies(liveScanner: live));
+    expect(find.text('Camera access is off'), findsOneWidget);
+
+    live.startsAs = LiveScannerState.running;
+    await tester.tap(find.text('Allow camera access'));
+    await tester.pumpAndSettle();
+
+    expect(live.accessRequests, 1);
+    expect(find.text('Point the camera at album covers'), findsOneWidget);
+  });
+
   testWidgets('leaving the scan tab stops the camera', (tester) async {
     final live = FakeLiveScanner();
     final deps = await pumpApp(
