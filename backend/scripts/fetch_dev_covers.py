@@ -95,6 +95,40 @@ def primary_image_url(release: dict) -> str | None:
     return None
 
 
+def fetch_album(
+    discogs: DiscogsCovers, album: dict[str, str], images_dir: Path
+) -> dict[str, str] | None:
+    """Download one cover and return its ``covers.csv`` row, or None."""
+    release_id = (album.get("release_id") or "").strip()
+    cover_url = (album.get("cover_url") or "").strip()
+    year = (album.get("year") or "").strip()
+    if not release_id:
+        release_id = discogs.find_release_id(album["artist"], album["title"])
+        if release_id is None:
+            return None
+        album["release_id"] = release_id
+    image_path = images_dir / f"{release_id}.jpg"
+    if not cover_url or (not year and not image_path.exists()):
+        # Hand-written rows: the release gives the year and the cover.
+        release = discogs.release(release_id)
+        year = str(release.get("year") or "")
+        cover_url = primary_image_url(release) or ""
+        if not cover_url:
+            return None
+    if not image_path.exists():
+        data = discogs.download(cover_url)
+        temporary = image_path.with_suffix(".part")
+        temporary.write_bytes(data)
+        temporary.replace(image_path)  # No half-written images after a crash.
+    return {
+        "release_id": release_id,
+        "artist": album["artist"],
+        "title": album["title"],
+        "year": year,
+        "image": f"images/{release_id}.jpg",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--albums", type=Path, default=Path("datasets/dev_albums.csv"))
@@ -115,31 +149,12 @@ def main() -> int:
         discogs = DiscogsCovers(client, token)
         for album in albums:
             label = f"{album['artist']} - {album['title']}"
-            release_id = (album.get("release_id") or "").strip()
-            if not release_id:
-                release_id = discogs.find_release_id(album["artist"], album["title"])
-                if release_id is None:
-                    print(f"skip (not found): {label}", file=sys.stderr)
-                    continue
-                album["release_id"] = release_id
-            release = discogs.release(release_id)
-            url = primary_image_url(release)
-            if url is None:
-                print(f"skip (no image): {label}", file=sys.stderr)
+            row = fetch_album(discogs, album, images_dir)
+            if row is None:
+                print(f"skip (not found): {label}", file=sys.stderr)
                 continue
-            image_path = images_dir / f"{release_id}.jpg"
-            if not image_path.exists():
-                image_path.write_bytes(discogs.download(url))
-            rows.append(
-                {
-                    "release_id": release_id,
-                    "artist": album["artist"],
-                    "title": album["title"],
-                    "year": release.get("year") or "",
-                    "image": f"images/{release_id}.jpg",
-                }
-            )
-            print(f"ok {release_id}: {label}")
+            rows.append(row)
+            print(f"ok {row['release_id']}: {label}")
 
     with (args.output / "covers.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(
