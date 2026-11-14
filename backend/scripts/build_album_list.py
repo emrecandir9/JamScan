@@ -201,9 +201,20 @@ class DiscogsSearch:
         raise RuntimeError(f"Discogs search kept failing for {genre!r} page {page}")
 
 
+# Discogs sorts by a popularity index that lags behind the ``have`` numbers it
+# shows, so a few neighbouring results look swapped. Random order would put
+# only about half of the pairs in order.
+SORTED_PAIR_SHARE = 0.9
+
+
 def is_sorted_by_have(results: list[dict]) -> bool:
+    """True when results are (almost) ordered from most to least collected."""
     haves = [(result.get("community") or {}).get("have") or 0 for result in results]
-    return all(a >= b for a, b in zip(haves, haves[1:], strict=False))
+    pairs = list(zip(haves, haves[1:], strict=False))
+    if not pairs:
+        return True
+    in_order = sum(1 for a, b in pairs if a >= b)
+    return in_order / len(pairs) >= SORTED_PAIR_SHARE
 
 
 def genre_candidates(
