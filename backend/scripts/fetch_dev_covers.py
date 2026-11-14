@@ -1,8 +1,14 @@
-"""Download a small development set of album covers from Discogs.
+"""Download album covers from Discogs for the reference dataset.
 
 Reads ``artist,title,release_id`` rows. Rows without a release ID are looked
 up with Discogs vinyl-release search; ``--save-ids`` writes the IDs found back
-to the CSV so later runs fetch the same releases. Covers are saved as
+to the CSV so later runs fetch the same releases.
+
+Rows from ``scripts.build_album_list`` also carry ``year`` and ``cover_url``:
+those covers are downloaded directly, and an image already on disk needs no
+request. A failing album is reported and skipped; ``covers.csv`` is written
+even after Ctrl+C, so a long run is resumed by starting it again.
+Covers are saved as
 ``<output>/images/<release_id>.jpg`` with a ``covers.csv`` that
 ``scripts.build_index`` reads. Cover art is copyrighted: keep the output out
 of Git (``backend/data/`` is ignored).
@@ -128,6 +134,26 @@ def fetch_album(
         "image": f"images/{release_id}.jpg",
     }
 
+def write_covers(output: Path, rows: list[dict[str, str]]) -> None:
+    with (output / "covers.csv").open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(
+            file,
+            fieldnames=["release_id", "artist", "title", "year", "image"],
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def save_ids(path: Path, albums: list[dict[str, str]], fieldnames: list[str]) -> None:
+    """Write the albums back with the release IDs found, keeping all columns."""
+    with path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(
+            file, fieldnames=fieldnames, lineterminator="\n", extrasaction="ignore"
+        )
+        writer.writeheader()
+        writer.writerows(albums)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
@@ -140,38 +166,40 @@ def main() -> int:
         parser.error("Set DISCOGS_TOKEN to fetch covers from Discogs.")
 
     with args.albums.open(newline="", encoding="utf-8") as file:
-        albums = list(csv.DictReader(file))
+        reader = csv.DictReader(file)
+        albums = list(reader)
+        fieldnames = list(reader.fieldnames or ["artist", "title", "release_id"])
     images_dir = args.output / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
     rows = []
-    with httpx.Client() as client:
-        discogs = DiscogsCovers(client, token)
-        for album in albums:
-            label = f"{album['artist']} - {album['title']}"
-            row = fetch_album(discogs, album, images_dir)
-            if row is None:
-                print(f"skip (not found): {label}", file=sys.stderr)
-                continue
-            rows.append(row)
-            print(f"ok {row['release_id']}: {label}")
-
-    with (args.output / "covers.csv").open("w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(
-            file,
-            fieldnames=["release_id", "artist", "title", "year", "image"],
-            lineterminator="\n",
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-    if args.save_ids:
-        with args.albums.open("w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(
-                file, fieldnames=["artist", "title", "release_id"], lineterminator="\n"
-            )
-            writer.writeheader()
-            writer.writerows(albums)
-    print(f"{len(rows)} of {len(albums)} covers saved to {args.output}")
+    failed = 0
+    try:
+        with httpx.Client() as client:
+            discogs = DiscogsCovers(client, token)
+            for number, album in enumerate(albums, start=1):
+                label = f"{album['artist']} - {album['title']}"
+                try:
+                    row = fetch_album(discogs, album, images_dir)
+                except (httpx.HTTPError, RuntimeError, OSError) as error:
+                    failed += 1
+                    print(f"skip (error: {error}): {label}", file=sys.stderr)
+                    continue
+                if row is None:
+                    print(f"skip (not found): {label}", file=sys.stderr)
+                    continue
+                rows.append(row)
+                print(f"ok {row['release_id']} [{number}/{len(albums)}]: {label}")
+    except KeyboardInterrupt:
+        print("stopped: saving what was fetched so far", file=sys.stderr)
+    finally:
+        write_covers(args.output, rows)
+        if args.save_ids:
+            save_ids(args.albums, albums, fieldnames)
+    print(
+        f"{len(rows)} of {len(albums)} covers saved to {args.output}"
+        + (f" ({failed} failed, run again to retry)" if failed else "")
+    )
     return 0 if rows else 1
 
 
