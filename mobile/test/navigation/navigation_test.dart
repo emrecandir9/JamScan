@@ -6,6 +6,7 @@ import 'package:jamscan/services/recognition_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
 
 import '../support/test_app.dart';
+import '../support/fake_preview_audio.dart';
 
 void main() {
   group('tabs and taskbars', () {
@@ -171,16 +172,19 @@ void main() {
       expect(inResultCard('Miles Davis · 1959 · Vinyl LP'), findsOneWidget);
     });
 
-    testWidgets('All tracks expands the top tracks list', (tester) async {
-      await pumpApp(tester);
-      await showResultViaSearch(tester, query: 'rumours', title: 'Rumours');
-
+    testWidgets('All tracks expands the available previews list', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        dependencies: testDependencies(catalog: PreviewCatalog()),
+      );
+      await showResultViaSearch(tester, query: 'test', title: 'Test album');
       await tapKey(tester, 'scan.allTracks');
-      expect(find.text('Top tracks · by popularity'), findsOneWidget);
-      expect(inResultCard('Go Your Own Way'), findsOneWidget);
-
+      expect(find.text('Available previews'), findsOneWidget);
+      expect(inResultCard('Track A2'), findsOneWidget);
       await tapKey(tester, 'scan.collapseTracks');
-      expect(find.text('Top tracks · by popularity'), findsNothing);
+      expect(find.text('Available previews'), findsNothing);
     });
 
     testWidgets('Learn more opens album details with the main taskbar', (

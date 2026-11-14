@@ -68,7 +68,7 @@
           <mxGeometry height="26" width="260" y="212" as="geometry" />
         </mxCell>
         <mxCell id="albums" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;marginBottom=0;fillColor=#ffe6cc;strokeColor=#d79b00;" value="ALBUMS" vertex="1">
-          <mxGeometry height="264" width="300" x="790" y="563" as="geometry" />
+          <mxGeometry height="446" width="300" x="790" y="563" as="geometry" />
         </mxCell>
         <mxCell id="albums_r1" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="id  INTEGER  PK" vertex="1">
           <mxGeometry height="26" width="300" y="30" as="geometry" />
@@ -97,8 +97,29 @@
         <mxCell id="albums_r9" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="fetched_at  DATETIME" vertex="1">
           <mxGeometry height="26" width="300" y="238" as="geometry" />
         </mxCell>
+        <mxCell id="albums_r10" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="cover_url  TEXT  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="264" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r11" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="label  TEXT  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r12" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="catalog_number  TEXT  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="316" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r13" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="genres  TEXT  JSON" vertex="1">
+          <mxGeometry height="26" width="300" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r14" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="styles  TEXT  JSON" vertex="1">
+          <mxGeometry height="26" width="300" y="368" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r15" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="rating  REAL  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="394" as="geometry" />
+        </mxCell>
+        <mxCell id="albums_r16" parent="albums" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="preview_status  TEXT  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="420" as="geometry" />
+        </mxCell>
         <mxCell id="tracks" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;marginBottom=0;fillColor=#ffe6cc;strokeColor=#d79b00;" value="TRACKS" vertex="1">
-          <mxGeometry height="212" width="300" x="770" y="70" as="geometry" />
+          <mxGeometry height="264" width="300" x="770" y="70" as="geometry" />
         </mxCell>
         <mxCell id="tracks_r1" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="id  INTEGER  PK" vertex="1">
           <mxGeometry height="26" width="300" y="30" as="geometry" />
@@ -120,6 +141,12 @@
         </mxCell>
         <mxCell id="tracks_r7" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="preview_source  TEXT  NULLABLE" vertex="1">
           <mxGeometry height="26" width="300" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="tracks_r8" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="position_label  TEXT  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="212" as="geometry" />
+        </mxCell>
+        <mxCell id="tracks_r9" parent="tracks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=6;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;html=1;" value="duration_seconds  INTEGER  NULLABLE" vertex="1">
+          <mxGeometry height="26" width="300" y="238" as="geometry" />
         </mxCell>
         <mxCell id="history" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="HISTORY_ENTRIES" vertex="1">
           <mxGeometry height="238" width="300" x="410" y="242" as="geometry" />

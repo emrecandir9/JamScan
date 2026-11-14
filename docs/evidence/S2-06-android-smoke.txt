@@ -1,0 +1,8 @@
+11-03 08:31:28.395  9264  9264 I flutter : S2-06 PASS: real decoder advances
+11-03 08:31:29.420  9264  9264 I flutter : S2-06 PASS: pause holds position
+11-03 08:31:31.469  9264  9264 I flutter : S2-06 PASS: resume advances
+11-03 08:31:32.763  9264  9264 I flutter : S2-06 PASS: track switch
+11-03 08:32:04.765  9264  9264 I flutter : S2-06 PASS: preview completes within 30 seconds
+11-03 08:32:07.068  9264  9264 I flutter : S2-06 PASS: completed preview replays
+11-03 08:32:07.078  9264  9264 I flutter : S2-06 PASS: stop clears playback
+11-03 08:32:07.078  9264  9264 I flutter : S2-06 SMOKE PASSED

@@ -74,7 +74,9 @@ The lockfile is enforced in CI, so this change adds no dependencies.
 - **Live camera preview.** The viewfinder is a placeholder. The shutter opens
   the system camera through the existing `CameraCaptureService` (S1-03).
   Adding the `camera` package would make the feed live.
-- **Audio.** Previews are simulated (see `PreviewPlayer`).
+- **Audio.** S2-06 adds real HTTPS preview playback with `just_audio` (see
+  [S2-06.md](S2-06.md)). Mock tracks without URLs show unavailable; S2-07
+  supplies real backend metadata to the app.
 - **Cover images.** Covers are neutral placeholders until Discogs images are
   fetched.
 
@@ -84,8 +86,9 @@ The wireframes need fields the drift tables (DATA_MODEL.md) do not have yet:
 
 - `ListEntries`: a ghost flag (`is_ghost`) and a "looking for" note
 - `Albums`: label, catalogue number, country, genres and styles, community
-  rating and rating count
-- `Tracks`: duration and printed position (`A1`, `B2`)
+  rating and rating count (all except country and rating count added in
+  S2-05, see DATA_MODEL.md)
+- `Tracks`: duration and printed position (`A1`, `B2`) (added in S2-05)
 
 ## Relationship to S1-03 and S1-04
 

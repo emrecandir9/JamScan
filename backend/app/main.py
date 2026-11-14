@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from app.recognition.config import RecognitionSettings
 from app.recognition.routes import router as recognition_router
 from app.recognition.service import load_recognizer
+from app.routes import router as releases_router
 
 
 @asynccontextmanager
@@ -20,6 +21,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="JamSCAN API", version="0.1.0", lifespan=lifespan)
 app.include_router(recognition_router)
+app.include_router(releases_router)
 
 
 @app.get("/health", tags=["health"])

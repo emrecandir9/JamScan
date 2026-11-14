@@ -65,18 +65,49 @@ class MiniPlayer extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     IconButton.filled(
-                      tooltip: player.isPlaying
+                      tooltip: player.wantsPlay
                           ? 'Pause preview'
                           : 'Play preview',
                       onPressed: () => player.toggle(album, track),
                       icon: Icon(
-                        player.isPlaying ? Icons.pause : Icons.play_arrow,
+                        player.wantsPlay ? Icons.pause : Icons.play_arrow,
                       ),
+                    ),
+                    IconButton(
+                      tooltip: 'Stop preview',
+                      onPressed: player.stop,
+                      icon: const Icon(Icons.close),
                     ),
                   ],
                 ),
               ),
-              LinearProgressIndicator(value: player.progress, minHeight: 2),
+              if (player.error != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          player.error!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => player.play(album, track),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              if (player.isLoading)
+                const Text(
+                  'Loading preview…',
+                  semanticsLabel: 'Loading preview',
+                ),
+              LinearProgressIndicator(
+                value: player.isLoading ? null : player.progress,
+                minHeight: 2,
+              ),
             ],
           ),
         );

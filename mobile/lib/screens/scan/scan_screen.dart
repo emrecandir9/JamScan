@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -10,11 +11,13 @@ import '../../models/library.dart';
 import '../../routing/app_navigation.dart';
 import '../../services/camera_capture_service.dart';
 import '../../services/gallery_import_service.dart';
+import '../../services/live_scanner.dart';
 import '../../state/shell_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/album_art.dart';
 import '../../widgets/capture_card.dart';
 import '../../widgets/common.dart';
+import '../../widgets/live_camera_view.dart';
 import '../../widgets/sign_in_prompt.dart';
 import '../../widgets/taskbars.dart';
 import '../../widgets/viewfinder.dart';
@@ -26,8 +29,9 @@ import 'scan_flow_screen.dart';
 /// The Scan tab and start page of the app.
 ///
 /// Wireframes 01 (camera), 02b (camera access off) and 10a-c (result
-/// overlaid on the camera). There is no camera package in the project yet,
-/// so the viewfinder is a placeholder and the shutter opens the system
+/// overlaid on the camera). The live preview and cover outlines come from
+/// [LiveScanner] (S2-09), and the shutter photographs with the same camera.
+/// When no live camera is available, the shutter falls back to the system
 /// camera through [CameraCaptureService] (S1-03).
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -43,8 +47,9 @@ class _ScanResult {
   final String? photoPath;
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   late final AppDependencies _deps = AppScope.of(context);
+  late final LiveScanner _live = _deps.liveScanner;
 
   /// Set when the camera permission was refused.
   CameraCaptureStatus? _permissionProblem;
@@ -54,7 +59,12 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _deps.shell.addListener(_onShellChanged);
+    _live.addListener(_onLiveChanged);
+    if (_deps.shell.tab == AppTab.scan) {
+      _live.start();
+    }
     // Android may stop the app while the system camera is open.
     if (Platform.isAndroid) {
       _recoverCapture();
@@ -63,16 +73,58 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _deps.shell.removeListener(_onShellChanged);
+    _live
+      ..removeListener(_onLiveChanged)
+      ..stop();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pause detection while another page (album details, the scan flow) is
+    // on top; the camera keeps running so the preview resumes instantly.
+    final onTop = ModalRoute.of(context)?.isCurrent ?? true;
+    scheduleMicrotask(() => _live.analysisPaused = !onTop);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (_deps.shell.tab == AppTab.scan) _live.start();
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _live.stop();
+    }
+  }
+
+  void _onLiveChanged() {
+    if (!mounted) return;
+    setState(() {
+      _permissionProblem = switch (_live.state) {
+        LiveScannerState.permissionDenied =>
+          CameraCaptureStatus.permissionDenied,
+        LiveScannerState.permissionPermanentlyDenied =>
+          CameraCaptureStatus.permissionPermanentlyDenied,
+        LiveScannerState.running => null,
+        _ => _permissionProblem,
+      };
+    });
   }
 
   void _onShellChanged() {
     final shell = _deps.shell;
     if (shell.tab != AppTab.scan) {
       _deps.player.pause();
+      _live.stop();
       return;
     }
+    _live.start();
     final album = shell.takePendingResult();
     if (album != null) {
       _showResult(album, null);
@@ -89,6 +141,18 @@ class _ScanScreenState extends State<ScanScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     _deps.player.pause();
+
+    if (_live.state == LiveScannerState.running) {
+      final path = await _live.takePicture();
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (path == null) {
+        _showMessage('Could not capture the photo. Please try again.');
+      } else {
+        await _identify(path);
+      }
+      return;
+    }
 
     final result = await _deps.camera.capture();
     if (!mounted) return;
@@ -185,6 +249,14 @@ class _ScanScreenState extends State<ScanScreen> {
     setState(() => _result = null);
   }
 
+  Future<void> _allowCamera() async {
+    await _live.start();
+    if (!mounted) return;
+    if (_live.state == LiveScannerState.unavailable) {
+      await _capture();
+    }
+  }
+
   Future<void> _openSettings() async {
     var opened = false;
     try {
@@ -247,7 +319,17 @@ class _ScanScreenState extends State<ScanScreen> {
       builder: (context, constraints) {
         return Column(
           children: [
-            Expanded(child: _FramingArea(result: result)),
+            Expanded(
+              child: _live.state == LiveScannerState.running
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        LiveCameraView(scanner: _live),
+                        _FramingArea(result: result, live: true),
+                      ],
+                    )
+                  : _FramingArea(result: result),
+            ),
             if (result != null)
               ConstrainedBox(
                 constraints: BoxConstraints(
@@ -290,7 +372,7 @@ class _ScanScreenState extends State<ScanScreen> {
           )
         else
           FilledButton(
-            onPressed: _capture,
+            onPressed: _allowCamera,
             child: const Text('Allow camera access'),
           ),
         OutlinedButton.icon(
@@ -332,9 +414,12 @@ class _ProfileButton extends StatelessWidget {
 /// found, and the hint pill underneath. Shrinks away when the result card
 /// needs the space.
 class _FramingArea extends StatelessWidget {
-  const _FramingArea({required this.result});
+  const _FramingArea({required this.result, this.live = false});
 
   final _ScanResult? result;
+
+  /// True when the live preview is shown behind the frame.
+  final bool live;
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +444,7 @@ class _FramingArea extends StatelessWidget {
                 child: SizedBox.square(
                   dimension: side,
                   child: result == null
-                      ? const _LiveFeedPlaceholder()
+                      ? (live ? null : const _LiveFeedPlaceholder())
                       : CoverPhoto(
                           path: result.photoPath,
                           album: result.album,
@@ -370,8 +455,10 @@ class _FramingArea extends StatelessWidget {
               if (showHint) ...[
                 const SizedBox(height: 14),
                 result == null
-                    ? const _HintPill(
-                        label: 'Fit the album cover inside the frame',
+                    ? _HintPill(
+                        label: live
+                            ? 'Point the camera at album covers'
+                            : 'Fit the album cover inside the frame',
                       )
                     : const _HintPill(label: 'Match found', icon: Icons.check),
               ],

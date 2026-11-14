@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../release_metadata.dart';
 import '../app_database.dart';
 import '../tables.dart';
 
@@ -74,6 +75,27 @@ class AlbumDao extends DatabaseAccessor<AppDatabase> with _$AlbumDaoMixin {
             .get();
 
     return AlbumWithTracks(album: album, tracks: tracklist);
+  }
+
+  /// Saves metadata fetched from the backend (S2-04) and returns the album id.
+  ///
+  /// Uses [saveAlbumWithTracks], so a release that is already stored is
+  /// updated in place and its tracklist replaced. A downloaded cover
+  /// (`cover_path`) is kept.
+  Future<int> saveRelease(
+    ReleaseMetadata release, {
+    required DateTime fetchedAt,
+  }) {
+    return saveAlbumWithTracks(
+      album: release.toAlbumCompanion(fetchedAt: fetchedAt),
+      tracklist: release.toTrackCompanions(),
+    );
+  }
+
+  /// Reads a stored release with its tracklist by its Discogs release id.
+  Future<AlbumWithTracks?> getReleaseWithTracks(String releaseId) async {
+    final album = await findByReleaseId(releaseId);
+    return album == null ? null : getAlbumWithTracks(album.id);
   }
 
   /// Looks up a stored album by its external Discogs release id.

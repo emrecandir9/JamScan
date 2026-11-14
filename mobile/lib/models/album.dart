@@ -16,8 +16,9 @@ class Track {
     required this.title,
     required this.duration,
     this.popularityRank,
-    this.hasPreview = true,
-  });
+    bool hasPreview = true,
+    this.previewUrl,
+  }) : _previewEnabled = hasPreview;
 
   /// Position as printed on the release, for example `A1` or `3`.
   final String position;
@@ -28,7 +29,18 @@ class Track {
   final int? popularityRank;
 
   /// Whether a 30-second preview exists for this track.
-  final bool hasPreview;
+  final bool _previewEnabled;
+  final String? previewUrl;
+
+  /// Only backend-provided HTTPS audio URLs are playable.
+  bool get hasPreview {
+    final uri = Uri.tryParse(previewUrl ?? '');
+    return _previewEnabled &&
+        uri != null &&
+        uri.scheme == 'https' &&
+        uri.host.isNotEmpty &&
+        uri.userInfo.isEmpty;
+  }
 }
 
 /// A release as the UI shows it.
@@ -97,11 +109,15 @@ class Album {
     if (!previewsAvailable) {
       return const [];
     }
-    final ranked =
-        tracks
-            .where((track) => track.hasPreview && track.popularityRank != null)
-            .toList()
-          ..sort((a, b) => a.popularityRank!.compareTo(b.popularityRank!));
-    return ranked.take(5).toList();
+    final ranked = tracks.indexed.where((entry) => entry.$2.hasPreview).toList()
+      ..sort((a, b) {
+        final aRank = a.$2.popularityRank;
+        final bRank = b.$2.popularityRank;
+        if (aRank == null && bRank != null) return 1;
+        if (aRank != null && bRank == null) return -1;
+        final rankOrder = (aRank ?? 0).compareTo(bRank ?? 0);
+        return rankOrder == 0 ? a.$1.compareTo(b.$1) : rankOrder;
+      });
+    return ranked.take(5).map((entry) => entry.$2).toList();
   }
 }
