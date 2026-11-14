@@ -134,6 +134,7 @@ def fetch_album(
         "image": f"images/{release_id}.jpg",
     }
 
+
 def write_covers(output: Path, rows: list[dict[str, str]]) -> None:
     with (output / "covers.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(
