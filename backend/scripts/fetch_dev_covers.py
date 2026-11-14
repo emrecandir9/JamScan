@@ -24,6 +24,7 @@ from scripts.discogs import DISCOGS_URL
 
 # Authenticated Discogs requests are limited to 60 per minute.
 REQUEST_INTERVAL_SECONDS = 1.1
+MAX_RETRIES = 5
 
 
 class DiscogsCovers:
@@ -36,15 +37,27 @@ class DiscogsCovers:
         self._last_request = 0.0
 
     def _get(self, url: str, **params: str | int) -> httpx.Response:
-        wait = self._last_request + REQUEST_INTERVAL_SECONDS - time.monotonic()
-        if wait > 0:
-            time.sleep(wait)
-        self._last_request = time.monotonic()
-        response = self._client.get(
-            url, params=params, headers=self._headers, timeout=20
-        )
-        response.raise_for_status()
-        return response
+        for attempt in range(MAX_RETRIES):
+            wait = self._last_request + REQUEST_INTERVAL_SECONDS - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            self._last_request = time.monotonic()
+            try:
+                response = self._client.get(
+                    url, params=params, headers=self._headers, timeout=20
+                )
+            except httpx.TransportError:
+                time.sleep(2**attempt)
+                continue
+            if response.status_code == 429:
+                time.sleep(60)  # Rate limited: wait for the window to reset.
+                continue
+            if response.status_code >= 500:
+                time.sleep(2**attempt)
+                continue
+            response.raise_for_status()
+            return response
+        raise RuntimeError(f"Discogs kept failing for {url}")
 
     def find_release_id(self, artist: str, title: str) -> str | None:
         results = (
