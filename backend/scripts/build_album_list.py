@@ -23,8 +23,22 @@ Requires ``DISCOGS_TOKEN`` in the environment.
 """
 
 import re
+import time
 import unicodedata
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+
+import httpx
+
+from scripts.api_checks import USER_AGENT
+from scripts.discogs import DISCOGS_URL
+
+# Authenticated Discogs requests are limited to 60 per minute.
+REQUEST_INTERVAL_SECONDS = 1.1
+MAX_RETRIES = 5
+PER_PAGE = 100
+# Discogs search stops returning results after about 100 pages.
+MAX_PAGES = 100
 
 GENRES = (
     "Rock",
@@ -125,3 +139,93 @@ def parse_result(result: dict, genre: str) -> Candidate | None:
         genre=genre,
         master_id=str(master_id) if isinstance(master_id, int) and master_id else "",
     )
+
+
+class DiscogsSearch:
+    def __init__(
+        self,
+        client: httpx.Client,
+        token: str,
+        sleep: Callable[[float], None] = time.sleep,
+        interval: float = REQUEST_INTERVAL_SECONDS,
+    ) -> None:
+        self._client = client
+        self._headers = {
+            "Authorization": f"Discogs token={token}",
+            "User-Agent": USER_AGENT,
+        }
+        self._sleep = sleep
+        self._interval = interval
+        self._last_request = 0.0
+        self.requests = 0
+
+    def page(self, genre: str, page: int) -> tuple[list[dict], int]:
+        """One page of vinyl album releases; returns results and page count."""
+        params = {
+            "type": "release",
+            "format": "Vinyl",
+            "genre": genre,
+            "sort": "have",
+            "sort_order": "desc",
+            "per_page": PER_PAGE,
+            "page": page,
+        }
+        for attempt in range(MAX_RETRIES):
+            wait = self._last_request + self._interval - time.monotonic()
+            if wait > 0:
+                self._sleep(wait)
+            self._last_request = time.monotonic()
+            self.requests += 1
+            try:
+                response = self._client.get(
+                    f"{DISCOGS_URL}/database/search",
+                    params=params,
+                    headers=self._headers,
+                    timeout=30,
+                )
+            except httpx.TransportError:
+                self._sleep(2**attempt)
+                continue
+            if response.status_code == 429 or response.status_code >= 500:
+                self._sleep(max(2**attempt, 60 if response.status_code == 429 else 0))
+                continue
+            response.raise_for_status()
+            body = response.json()
+            pages = (body.get("pagination") or {}).get("pages") or 0
+            return body.get("results") or [], int(pages)
+        raise RuntimeError(f"Discogs search kept failing for {genre!r} page {page}")
+
+
+def is_sorted_by_have(results: list[dict]) -> bool:
+    haves = [(result.get("community") or {}).get("have") or 0 for result in results]
+    return all(a >= b for a, b in zip(haves, haves[1:], strict=False))
+
+
+def genre_candidates(
+    search: DiscogsSearch,
+    genre: str,
+    min_have: int,
+    warn: Callable[[str], None],
+) -> Iterator[Candidate]:
+    """Usable candidates of one genre, most collected first, page by page."""
+    page, pages = 1, 1
+    while page <= min(pages, MAX_PAGES):
+        results, pages = search.page(genre, page)
+        if not results:
+            return
+        if page == 1 and not is_sorted_by_have(results):
+            warn(
+                f"{genre}: Discogs did not sort by popularity; "
+                "results are filtered by --min-have instead"
+            )
+        page_candidates = [
+            candidate
+            for result in results
+            if (candidate := parse_result(result, genre)) is not None
+        ]
+        yield from sorted(page_candidates, key=lambda c: -c.have)
+        if is_sorted_by_have(results) and all(
+            ((r.get("community") or {}).get("have") or 0) < min_have for r in results
+        ):
+            return  # Sorted results only get less popular from here.
+        page += 1
