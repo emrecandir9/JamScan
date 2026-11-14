@@ -55,11 +55,15 @@ First full build on 2026-11-14 (Windows laptop, CPU):
 | Item | Value |
 | --- | --- |
 | Albums in the list | 5,000 (154 hand-picked + 4,846 automatic) |
-| Discogs requests for the list | … |
-| Covers saved / failed | … / … |
-| Images on disk | … MB |
-| Index size (`embeddings.npy` + `manifest.json`) | … MB |
+| Covers saved / failed | 5,000 / 0 |
+| Images on disk | 506 MB |
+| Index size (`embeddings.npy` + `manifest.json`) | 8.2 MB |
 | Index rows, dimension | 5,000 × 384 |
+
+Albums per genre: 404 each for Rock, Pop, Electronic, Hip Hop, Jazz,
+Funk / Soul, Reggae, Latin, Blues and Folk, World, & Country; 403 each for
+Classical and Stage & Screen; plus the 154 hand-picked albums. Every genre
+reached its share above the default `--min-have 200`.
 
 Albums per genre: Rock …, Pop …, Electronic …, Hip Hop …, Jazz …,
 Funk / Soul …, Reggae …, Latin …, Blues …, Folk, World, & Country …,
