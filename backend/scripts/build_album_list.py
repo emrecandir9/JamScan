@@ -22,11 +22,16 @@ Example::
 Requires ``DISCOGS_TOKEN`` in the environment.
 """
 
+import argparse
+import csv
+import os
 import re
+import sys
 import time
 import unicodedata
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 
@@ -229,3 +234,115 @@ def genre_candidates(
         ):
             return  # Sorted results only get less popular from here.
         page += 1
+
+
+def read_included(path: Path | None) -> list[dict[str, str]]:
+    if path is None:
+        return []
+    with path.open(newline="", encoding="utf-8") as file:
+        return [
+            {key: (value or "").strip() for key, value in row.items()}
+            for row in csv.DictReader(file)
+        ]
+
+
+def build_list(
+    search: DiscogsSearch,
+    target: int,
+    genres: Iterable[str] = GENRES,
+    included: list[dict[str, str]] | None = None,
+    min_have: int = 200,
+    warn: Callable[[str], None] = lambda message: print(message, file=sys.stderr),
+) -> list[dict[str, str]]:
+    """Included albums first, then genres in turn until ``target`` rows."""
+    rows: list[dict[str, str]] = []
+    seen_names: set[tuple[str, str]] = set()
+    seen_ids: set[str] = set()
+    seen_masters: set[str] = set()
+
+    def add(row: dict[str, str]) -> bool:
+        name = (normalise(row["artist"]), normalise(row["title"]))
+        release_id = row.get("release_id", "")
+        master_id = row.get("master_id", "")
+        if (
+            name in seen_names
+            or (release_id and release_id in seen_ids)
+            or (master_id and master_id in seen_masters)
+        ):
+            return False
+        seen_names.add(name)
+        if release_id:
+            seen_ids.add(release_id)
+        if master_id:
+            seen_masters.add(master_id)
+        rows.append({column: row.get(column, "") for column in OUTPUT_COLUMNS})
+        return True
+
+    for row in included or []:
+        add(row)
+
+    streams = {
+        genre: genre_candidates(search, genre, min_have, warn) for genre in genres
+    }
+    while len(rows) < target and streams:
+        for genre in list(streams):
+            if len(rows) >= target:
+                break
+            for candidate in streams[genre]:
+                if candidate.have >= min_have and add(candidate.row()):
+                    break
+            else:
+                del streams[genre]  # This genre has no usable albums left.
+    if len(rows) < target:
+        warn(
+            f"only {len(rows)} albums found; lower --min-have or add genres "
+            f"to reach {target}"
+        )
+    return rows
+
+
+def write_rows(path: Path, rows: list[dict[str, str]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=OUTPUT_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--target", type=int, default=3000)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--include", type=Path, default=None)
+    parser.add_argument("--min-have", type=int, default=200)
+    parser.add_argument("--genres", nargs="+", default=list(GENRES))
+    args = parser.parse_args()
+    token = os.environ.get("DISCOGS_TOKEN", "").strip()
+    if not token:
+        parser.error("Set DISCOGS_TOKEN to search Discogs.")
+
+    with httpx.Client() as client:
+        search = DiscogsSearch(client, token)
+        rows = build_list(
+            search,
+            args.target,
+            args.genres,
+            read_included(args.include),
+            args.min_have,
+        )
+    write_rows(args.output, rows)
+    by_genre: dict[str, int] = {}
+    for row in rows:
+        key = row["genre"] or "(included)"
+        by_genre[key] = by_genre.get(key, 0) + 1
+    for genre, count in sorted(by_genre.items(), key=lambda item: -item[1]):
+        print(f"{count:6d}  {genre}")
+    print(
+        f"{len(rows)} albums written to {args.output} "
+        f"({search.requests} Discogs requests)"
+    )
+    return 0 if rows else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
