@@ -116,7 +116,10 @@ class AlbumDetailsScreen extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textMuted,
               ),
-            ),
+            )
+          else if (!album.previewsAvailable ||
+              !album.tracks.any((track) => track.hasPreview))
+            const InfoBanner(message: 'No previews available for this album.'),
           ListenableBuilder(
             listenable: player,
             builder: (context, _) => Column(
@@ -124,7 +127,7 @@ class AlbumDetailsScreen extends StatelessWidget {
                 for (final track in album.tracks)
                   _TrackRow(
                     track: track,
-                    playing: player.isPlayingTrack(album, track),
+                    playing: player.isCurrent(album, track) && player.wantsPlay,
                     onTap: track.hasPreview && album.previewsAvailable
                         ? () => player.toggle(album, track)
                         : null,
@@ -222,6 +225,15 @@ class _TrackRow extends StatelessWidget {
                 child: Icon(Icons.graphic_eq, size: 18),
               ),
             Text(Formatting.duration(track.duration), style: style),
+            IconButton(
+              tooltip: onTap == null
+                  ? 'Preview unavailable'
+                  : playing
+                  ? 'Pause preview'
+                  : 'Play preview',
+              onPressed: onTap,
+              icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+            ),
           ],
         ),
       ),
