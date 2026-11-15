@@ -11,6 +11,7 @@ import 'package:jamscan/services/gallery_import_service.dart';
 import 'package:jamscan/services/live_scanner.dart';
 import 'package:jamscan/services/recognition_service.dart';
 import 'package:jamscan/state/auth_controller.dart';
+import 'package:jamscan/state/recognition_session.dart';
 import 'package:jamscan/state/settings_controller.dart';
 import 'package:jamscan/state/preview_player.dart';
 
@@ -72,10 +73,12 @@ AppDependencies testDependencies({
   MockCatalogService? catalog,
   LiveScanner? liveScanner,
   PreviewPlayer? player,
+  RecognitionSession? session,
 }) {
   return AppDependencies(
     player: player,
     liveScanner: liveScanner ?? UnavailableLiveScanner(),
+    session: session,
     auth: AuthController(signedInAsDemo: signedIn),
     camera: camera ?? FakeCamera(),
     gallery: gallery ?? FakeGallery(),
