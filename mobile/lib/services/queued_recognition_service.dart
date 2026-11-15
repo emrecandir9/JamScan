@@ -2,10 +2,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import '../models/album.dart';
 import '../state/recognition_session.dart';
 import '../vision/still_cover.dart';
-import 'recognition_api.dart';
 import 'recognition_service.dart';
 import 'release_details_service.dart';
 
@@ -16,12 +14,10 @@ import 'release_details_service.dart';
 class QueuedRecognitionService implements RecognitionService {
   QueuedRecognitionService(
     this.session, {
-    this.details = const BasicReleaseDetails(),
     Future<PreparedCover> Function(Uint8List bytes)? prepare,
   }) : _prepare = prepare ?? _prepareInBackground;
 
   final RecognitionSession session;
-  final ReleaseDetailsService details;
   final Future<PreparedCover> Function(Uint8List bytes) _prepare;
 
   static Future<PreparedCover> _prepareInBackground(Uint8List bytes) =>
@@ -79,11 +75,14 @@ class QueuedRecognitionService implements RecognitionService {
           ],
         );
       case JobState.needsReview:
+        // Listed with what recognition returned; the scan flow loads the
+        // full details of the one the user picks (details.complete), so
+        // unpicked candidates cost no metadata requests.
         return RecognitionOutcome(
           RecognitionOutcomeKind.candidates,
           candidates: [
             for (final c in job.candidates)
-              RecognitionCandidate(await _albumFor(c), c.score),
+              RecognitionCandidate(albumFromCandidate(c), c.score),
           ],
         );
       case _:
@@ -92,14 +91,6 @@ class QueuedRecognitionService implements RecognitionService {
               ? RecognitionOutcomeKind.tooBlurry
               : RecognitionOutcomeKind.notRecognised,
         );
-    }
-  }
-
-  Future<Album> _albumFor(ApiCandidate candidate) async {
-    try {
-      return await details.details(candidate);
-    } on Exception {
-      return albumFromCandidate(candidate);
     }
   }
 }

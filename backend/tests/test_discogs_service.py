@@ -52,7 +52,43 @@ def test_search_releases_returns_candidates() -> None:
     with httpx.Client(transport=httpx.MockTransport(respond)) as client:
         result = search_releases(client, "Daft Punk", "test-token")
 
-    assert result == [{"discogs_id": 123, "title": "Album", "cover_url": None}]
+    assert result == [
+        {
+            "discogs_id": 123,
+            "title": "Album",
+            "cover_url": None,
+            "year": None,
+            "format": None,
+        }
+    ]
+
+
+def test_search_releases_returns_year_and_format() -> None:
+    def respond(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "results": [
+                    {
+                        "id": 1,
+                        "title": "Miles Davis - Kind Of Blue",
+                        "cover_image": "https://i.discogs.com/cover.jpg",
+                        "year": "1959",
+                        "format": ["Vinyl", "LP", "Album", 7],
+                    },
+                    {"id": 2, "title": "Unknown", "year": "", "format": "LP"},
+                ]
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(respond)) as client:
+        first, second = search_releases(client, "kind of blue", "test-token")
+
+    assert first["year"] == 1959
+    assert first["format"] == "Vinyl, LP, Album"
+    assert first["cover_url"] == "https://i.discogs.com/cover.jpg"
+    assert second["year"] is None
+    assert second["format"] is None
 
 
 @pytest.mark.parametrize(

@@ -66,6 +66,7 @@ class Album {
     this.ratingCount = 0,
     this.isPartial = false,
     this.previewsAvailable = true,
+    this.coverUrl,
   });
 
   /// External release identifier (a Discogs release id once wired up).
@@ -97,6 +98,10 @@ class Album {
 
   /// False when the preview service has nothing for this release.
   final bool previewsAvailable;
+
+  /// Cover image from Discogs, or null for sample data and releases
+  /// without artwork.
+  final String? coverUrl;
 
   /// `Artist · 1959`. The year is left out when unknown (0), as for some
   /// releases recognised before their full details arrive.

@@ -60,6 +60,24 @@ def _get_json(
     return result
 
 
+def _search_year(value: Any) -> int | None:
+    """Release year of a search hit; Discogs sends it as a string."""
+    if type(value) is int:
+        return value if value > 0 else None
+    if isinstance(value, str) and value.strip().isdigit():
+        year = int(value.strip())
+        return year if year > 0 else None
+    return None
+
+
+def _search_format(value: Any) -> str | None:
+    """Format of a search hit, e.g. ``Vinyl, LP, Album``."""
+    if not isinstance(value, list):
+        return None
+    parts = [part.strip() for part in value if isinstance(part, str) and part.strip()]
+    return ", ".join(parts) or None
+
+
 def search_releases(
     client: httpx.Client, query: str, token: str
 ) -> list[dict[str, Any]]:
@@ -94,6 +112,8 @@ def search_releases(
                 "discogs_id": item["id"],
                 "title": item["title"],
                 "cover_url": item.get("cover_image"),
+                "year": _search_year(item.get("year")),
+                "format": _search_format(item.get("format")),
             }
         )
 
