@@ -6,10 +6,12 @@ import '../models/album.dart';
 import '../theme/app_theme.dart';
 import 'dashed_border.dart';
 
-/// Cover placeholder until cover images are fetched from Discogs.
+/// Album cover: the Discogs image when the album has one, otherwise a
+/// placeholder (also shown while the image loads or when it fails).
 ///
-/// Each album gets a stable shade so rows are easy to tell apart. A ghost
-/// is drawn as a dashed outline with a faded record, as in the wireframes.
+/// Each album gets a stable placeholder shade so rows are easy to tell
+/// apart. A ghost is drawn as a dashed outline with a faded record, as in
+/// the wireframes.
 class AlbumArt extends StatelessWidget {
   const AlbumArt({
     super.key,
@@ -53,6 +55,33 @@ class AlbumArt extends StatelessWidget {
       );
     }
 
+    final placeholder = _placeholder();
+    final url = coverImageUrl(album);
+    if (url == null) {
+      return placeholder;
+    }
+    return Semantics(
+      label: 'Cover of ${album!.title}',
+      image: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: SizedBox.square(
+          dimension: size,
+          child: Image.network(
+            url.toString(),
+            fit: BoxFit.cover,
+            excludeFromSemantics: true,
+            loadingBuilder: (context, child, progress) =>
+                progress == null ? child : ExcludeSemantics(child: placeholder),
+            errorBuilder: (context, error, stackTrace) =>
+                ExcludeSemantics(child: placeholder),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
     final id = album?.id ?? '';
     final shade = _shades[id.hashCode.abs() % _shades.length];
     return Semantics(
@@ -73,6 +102,15 @@ class AlbumArt extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The cover image of [album] when it is an HTTPS URL, otherwise null.
+Uri? coverImageUrl(Album? album) {
+  final uri = Uri.tryParse(album?.coverUrl ?? '');
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+    return null;
+  }
+  return uri;
 }
 
 /// A photo taken or imported by the user, with a placeholder fallback.

@@ -46,11 +46,33 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
 
   @override
   void dispose() {
+    _typing?.cancel();
     _query.dispose();
     super.dispose();
   }
 
+  /// Pending search while the user is still typing.
+  Timer? _typing;
+
+  /// Searches once typing pauses for the catalogue's
+  /// [CatalogService.typingDelay], so a real catalogue gets one request per
+  /// pause instead of one per keystroke. Enter, retry and clearing still
+  /// search at once.
+  void _onTyped(String text) {
+    _typing?.cancel();
+    final delay = AppScope.of(context).catalog.typingDelay;
+    if (delay == Duration.zero || text.trim().isEmpty) {
+      _search(text);
+      return;
+    }
+    // Results still in flight are for older text.
+    _request++;
+    setState(() => _loading = true);
+    _typing = Timer(delay, () => _search(text));
+  }
+
   Future<void> _search(String text) async {
+    _typing?.cancel();
     final request = ++_request;
     final query = text.trim();
     if (query.isEmpty) {
@@ -88,14 +110,27 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
     _search('');
   }
 
-  void _select(Album album) {
+  /// True while the selected hit's details load; further taps are ignored.
+  bool _opening = false;
+
+  /// Search hits carry only artist, title, year, format and cover, so the
+  /// full details (tracklist, previews, pressing) are loaded before the
+  /// camera page shows the album. If they cannot be loaded the partial
+  /// album is shown.
+  Future<void> _select(Album album) async {
+    if (_opening) return;
+    final deps = AppScope.of(context);
     final query = _query.text.trim();
-    AppScope.of(context).history.recordSearch(
+    setState(() => _opening = true);
+    final full = await deps.releaseDetails.complete(album);
+    if (!mounted) return;
+    setState(() => _opening = false);
+    deps.history.recordSearch(
       query,
-      album,
+      full,
       afterFailedScan: widget.args.afterFailedScan,
     );
-    Navigator.of(context).pop(album);
+    Navigator.of(context).pop(full);
   }
 
   @override
@@ -164,7 +199,7 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
                       controller: _query,
                       autofocus: widget.args.initialQuery.isEmpty,
                       textInputAction: TextInputAction.search,
-                      onChanged: _search,
+                      onChanged: _onTyped,
                       onSubmitted: _search,
                       decoration: AppInputs.search(
                         'Album title or artist',
@@ -206,7 +241,7 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
             ),
             SizedBox(
               height: 4,
-              child: _loading
+              child: _loading || _opening
                   ? const LinearProgressIndicator(minHeight: 2)
                   : null,
             ),
