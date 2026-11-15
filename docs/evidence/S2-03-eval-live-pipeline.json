@@ -1,0 +1,71 @@
+{
+  "queries": 33,
+  "known_releases": 33,
+  "top1_accuracy": 1.0,
+  "top5_accuracy": 1.0,
+  "thresholds": {
+    "match": 0.75,
+    "margin": 0.05,
+    "review": 0.6
+  },
+  "decisions": {
+    "match": 30,
+    "needs_review": 2,
+    "no_match": 1,
+    "poor_quality": 0
+  },
+  "correct_matches": 30,
+  "wrong_matches": [],
+  "needs_review_containing_truth": 2,
+  "user_reaches_correct_album": 0.9697,
+  "score_when_correct": {
+    "min": 0.538,
+    "p10": 0.766,
+    "median": 0.869,
+    "p90": 0.935,
+    "max": 0.963
+  },
+  "best_wrong_score": {
+    "min": 0.219,
+    "p10": 0.265,
+    "median": 0.465,
+    "p90": 0.579,
+    "max": 0.651
+  },
+  "latency_ms": {
+    "mean": 21.6,
+    "p95": 24.6
+  },
+  "threshold_sweep": [
+    {
+      "match_threshold": 0.65,
+      "auto_matched": 32,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.7,
+      "auto_matched": 32,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.75,
+      "auto_matched": 30,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.8,
+      "auto_matched": 27,
+      "wrong_matches": 0
+    },
+    {
+      "match_threshold": 0.85,
+      "auto_matched": 20,
+      "wrong_matches": 0
+    }
+  ],
+  "misses": [],
+  "model_id": "dinov2-small/cls/v1",
+  "index_size": 42,
+  "source": "Crops captured by the mobile live pipeline (S2-09/S2-10 capture_proof_test) from simulated 90-degree sensor frames of the 42 dev covers; 33 captured.",
+  "evaluated_at": "2026-10-19"
+}
