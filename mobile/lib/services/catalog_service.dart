@@ -13,6 +13,10 @@ abstract class CatalogService {
   /// Releases matching [query]. Throws [CatalogUnavailableException] when the
   /// catalogue does not respond.
   Future<List<Album>> search(String query);
+
+  /// How long manual search waits after the last keystroke before it
+  /// searches. Zero searches on every keystroke.
+  Duration get typingDelay;
 }
 
 /// Searches Discogs through the backend (`GET /releases/search`).
@@ -24,6 +28,12 @@ class HttpCatalogService implements CatalogService {
   const HttpCatalogService(this.api);
 
   final ReleaseApi api;
+
+  /// Discogs allows 60 requests a minute. Searching on every keystroke used
+  /// that up while typing one title (found on the phone, S2-07 live run),
+  /// so a search starts only once typing pauses.
+  @override
+  Duration get typingDelay => const Duration(milliseconds: 500);
 
   @override
   Future<List<Album>> search(String query) async {
@@ -66,6 +76,10 @@ class MockCatalogService implements CatalogService {
   });
 
   final Duration latency;
+
+  /// The sample catalogue has no rate limit, so it searches as you type.
+  @override
+  Duration get typingDelay => Duration.zero;
 
   /// When true every search throws, to exercise the error state.
   bool failing;

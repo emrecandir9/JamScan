@@ -112,6 +112,47 @@ void main() {
       );
     });
 
+    testWidgets('typing sends one search per pause, not per keystroke', (
+      tester,
+    ) async {
+      final api = FakeReleaseApi();
+      final services = realServices(api);
+      await pumpApp(
+        tester,
+        dependencies: testDependencies(
+          catalog: services.catalog,
+          releaseDetails: services.details,
+        ),
+      );
+
+      await tapKey(tester, 'taskbar.search');
+      for (final text in [
+        'k',
+        'ki',
+        'kin',
+        'kind',
+        'kind of',
+        'kind of blue',
+      ]) {
+        await tester.enterText(find.byKey(const Key('search.field')), text);
+        await tester.pump(const Duration(milliseconds: 150));
+      }
+      expect(api.searchRequests, isEmpty);
+
+      await tester.pumpAndSettle();
+
+      expect(api.searchRequests, ['kind of blue']);
+      expect(find.text('1 result from Discogs'), findsOneWidget);
+
+      // Enter searches at once.
+      await tester.enterText(find.byKey(const Key('search.field')), 'blue');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+      expect(api.searchRequests, ['kind of blue', 'blue']);
+      await tester.pumpAndSettle();
+      expect(api.searchRequests, ['kind of blue', 'blue']);
+    });
+
     testWidgets('a backend failure offers a retry', (tester) async {
       final api = FakeReleaseApi()..failing = true;
       final services = realServices(api);

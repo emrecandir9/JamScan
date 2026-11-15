@@ -46,11 +46,33 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
 
   @override
   void dispose() {
+    _typing?.cancel();
     _query.dispose();
     super.dispose();
   }
 
+  /// Pending search while the user is still typing.
+  Timer? _typing;
+
+  /// Searches once typing pauses for the catalogue's
+  /// [CatalogService.typingDelay], so a real catalogue gets one request per
+  /// pause instead of one per keystroke. Enter, retry and clearing still
+  /// search at once.
+  void _onTyped(String text) {
+    _typing?.cancel();
+    final delay = AppScope.of(context).catalog.typingDelay;
+    if (delay == Duration.zero || text.trim().isEmpty) {
+      _search(text);
+      return;
+    }
+    // Results still in flight are for older text.
+    _request++;
+    setState(() => _loading = true);
+    _typing = Timer(delay, () => _search(text));
+  }
+
   Future<void> _search(String text) async {
+    _typing?.cancel();
     final request = ++_request;
     final query = text.trim();
     if (query.isEmpty) {
@@ -177,7 +199,7 @@ class _ManualSearchScreenState extends State<ManualSearchScreen> {
                       controller: _query,
                       autofocus: widget.args.initialQuery.isEmpty,
                       textInputAction: TextInputAction.search,
-                      onChanged: _search,
+                      onChanged: _onTyped,
                       onSubmitted: _search,
                       decoration: AppInputs.search(
                         'Album title or artist',
