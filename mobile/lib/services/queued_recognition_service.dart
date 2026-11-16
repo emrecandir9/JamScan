@@ -15,10 +15,18 @@ class QueuedRecognitionService implements RecognitionService {
   QueuedRecognitionService(
     this.session, {
     Future<PreparedCover> Function(Uint8List bytes)? prepare,
-  }) : _prepare = prepare ?? _prepareInBackground;
+    Future<Uint8List> Function(String path)? readPhoto,
+  }) : _prepare = prepare ?? _prepareInBackground,
+       _readPhoto = readPhoto ?? _readFile;
 
   final RecognitionSession session;
   final Future<PreparedCover> Function(Uint8List bytes) _prepare;
+
+  /// Reads the photo file. Replaceable so end-to-end widget tests can run
+  /// without real file I/O, which does not complete inside `testWidgets`.
+  final Future<Uint8List> Function(String path) _readPhoto;
+
+  static Future<Uint8List> _readFile(String path) => File(path).readAsBytes();
 
   static Future<PreparedCover> _prepareInBackground(Uint8List bytes) =>
       Isolate.run(() => prepareStillCover(bytes));
@@ -35,7 +43,7 @@ class QueuedRecognitionService implements RecognitionService {
     }
     final PreparedCover prepared;
     try {
-      prepared = await _prepare(await File(imagePath).readAsBytes());
+      prepared = await _prepare(await _readPhoto(imagePath));
     } on Exception {
       return const RecognitionOutcome(RecognitionOutcomeKind.notRecognised);
     }
