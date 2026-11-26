@@ -36,7 +36,9 @@ abstract class LiveScanner extends ChangeNotifier {
   /// while it stays in view.
   Stream<CoverCapture> get captures;
 
-  /// The camera's `sensorOrientation` in degrees.
+  /// Clockwise rotation, in degrees, that makes the analysed frames (and
+  /// so [covers]) upright: the camera's `sensorOrientation` on Android, 0 on
+  /// iOS, which already turns the frames to match the device.
   int get sensorDegrees;
 
   /// Width / height of the upright preview.
@@ -132,13 +134,15 @@ class CameraLiveScanner extends LiveScanner {
   @override
   Stream<CoverCapture> get captures => _captures.stream;
   @override
-  int get sensorDegrees => _controller?.description.sensorOrientation ?? 90;
+  int get sensorDegrees => _frameDegrees;
+  int _frameDegrees = 90;
+  int get _cameraDegrees => _controller?.description.sensorOrientation ?? 90;
   @override
   double get previewAspect {
     final size = _controller?.value.previewSize;
     if (size == null) return 3 / 4;
     // previewSize is reported in sensor orientation (landscape).
-    final upright = sensorDegrees % 180 == 90;
+    final upright = _cameraDegrees % 180 == 90;
     return upright ? size.height / size.width : size.width / size.height;
   }
 
@@ -255,12 +259,13 @@ class CameraLiveScanner extends LiveScanner {
   }
 
   void _onImage(CameraImage image) {
-    if (_busy || _paused || image.planes.length < 3) return;
+    if (_busy || _paused || image.planes.length < 2) return;
     final now = DateTime.now();
     if (now.difference(_lastFrame) < frameInterval) return;
     _lastFrame = now;
     _busy = true;
-    final frame = _copyFrame(image, sensorDegrees);
+    final frame = copyCameraFrame(image, _cameraDegrees);
+    _frameDegrees = frame.rotationDegrees;
     _worker!
         .analyze(frame)
         .then((analysis) {
@@ -325,20 +330,37 @@ class CameraLiveScanner extends LiveScanner {
 
 /// Copies the plugin's plane buffers, which are only valid during the
 /// stream callback.
-CameraFrame _copyFrame(CameraImage image, int rotationDegrees) {
+///
+/// Android sends three planes (Y, U, V) in the sensor's orientation. iOS
+/// sends two (Y, then Cb and Cr interleaved, NV12) and turns the frame to
+/// match the device, so a portrait frame is already upright. The app runs
+/// in portrait, so a frame needs [sensorDegrees] of rotation only while it
+/// is landscape.
+@visibleForTesting
+CameraFrame copyCameraFrame(CameraImage image, int sensorDegrees) {
   final y = image.planes[0];
-  final u = image.planes[1];
-  final v = image.planes[2];
+  final Uint8List u;
+  final Uint8List v;
+  final int uvPixelStride;
+  if (image.planes.length == 2) {
+    u = Uint8List.fromList(image.planes[1].bytes);
+    v = Uint8List.sublistView(u, 1);
+    uvPixelStride = 2;
+  } else {
+    u = Uint8List.fromList(image.planes[1].bytes);
+    v = Uint8List.fromList(image.planes[2].bytes);
+    uvPixelStride = image.planes[1].bytesPerPixel ?? 1;
+  }
   return CameraFrame(
     width: image.width,
     height: image.height,
     y: Uint8List.fromList(y.bytes),
     yRowStride: y.bytesPerRow,
-    u: Uint8List.fromList(u.bytes),
-    v: Uint8List.fromList(v.bytes),
-    uvRowStride: u.bytesPerRow,
-    uvPixelStride: u.bytesPerPixel ?? 1,
-    rotationDegrees: rotationDegrees,
+    u: u,
+    v: v,
+    uvRowStride: image.planes[1].bytesPerRow,
+    uvPixelStride: uvPixelStride,
+    rotationDegrees: image.width > image.height ? sensorDegrees : 0,
   );
 }
 
