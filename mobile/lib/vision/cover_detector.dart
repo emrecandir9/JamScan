@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'geometry.dart';
 import 'gray_image.dart';
+import 'line_quads.dart';
+import 'perspective.dart';
 
 /// Tunable limits for [CoverDetector]. Areas are fractions of the frame.
 class CoverDetectorConfig {
@@ -11,10 +13,10 @@ class CoverDetectorConfig {
     this.minEdgeStrength = 40,
     this.minArea = 0.06,
     this.maxArea = 0.97,
-    this.minAspect = 0.6,
-    this.maxAspect = 1.65,
-    this.minAngle = 55,
-    this.maxAngle = 125,
+    this.minAspect = 0.69,
+    this.maxAspect = 1.45,
+    this.minAngle = 60,
+    this.maxAngle = 120,
     this.minFill = 0.88,
     this.minSideSupport = 0.45,
     this.minMeanSupport = 0.7,
@@ -22,6 +24,14 @@ class CoverDetectorConfig {
     this.openingRadius = 5,
     this.cannyHighPercentile = 0.8,
     this.cannyLowRatio = 0.35,
+    this.minOrientedSide = 0.3,
+    this.minOrientedMean = 0.55,
+    this.priorBonus = 0.3,
+    this.minBorderCutSide = 0.5,
+    this.extensionLength = 0.25,
+    this.maxExtension = 0.5,
+    this.strongExtension = 0.7,
+    this.maxSpines = 0.8,
   });
 
   /// Edge thresholds, as percentiles of gradient strength. Each one is tried
@@ -61,6 +71,36 @@ class CoverDetectorConfig {
   /// when connected to a strong one.
   final double cannyHighPercentile;
   final double cannyLowRatio;
+
+  /// Final check of every candidate: the fraction of each side (and of all
+  /// four on average) that lies on an edge running along that side. Hands
+  /// holding a sleeve hide part of a side, so a single side may be weak.
+  final double minOrientedSide;
+  final double minOrientedMean;
+
+  /// Extra weight, up to this fraction, for an outline close to a cover
+  /// tracked in earlier frames, so the outline does not jump to a
+  /// competing shape.
+  final double priorBonus;
+
+  /// For a cover cut off by the frame edge: the support each of its three
+  /// visible sides needs.
+  final double minBorderCutSide;
+
+  /// How far past each corner, as a fraction of the side, edges are looked
+  /// for, and the largest average support allowed there. Outlines whose
+  /// sides carry on past the corners are built from longer lines (shelves,
+  /// spines, seams) rather than a sleeve.
+  final double extensionLength;
+  final double maxExtension;
+
+  /// Support past a single corner end above which the line clearly runs on.
+  final double strongExtension;
+
+  /// Shelves and crates of records: an outline is rejected when this
+  /// share of its inside, or more, is crossed from side to side by straight
+  /// lines parallel to its sides (record spines).
+  final double maxSpines;
 }
 
 /// One detected cover. Corners are normalised to 0-1 in the analysed frame.
@@ -92,7 +132,10 @@ class CoverDetector {
 
   final CoverDetectorConfig config;
 
-  List<CoverDetection> detect(GrayImage image) {
+  /// Finds covers in [image]. [priors] are outlines (normalised to 0-1)
+  /// of covers tracked in earlier frames; candidates close to one are
+  /// preferred.
+  List<CoverDetection> detect(GrayImage image, {List<Quad> priors = const []}) {
     final w = image.width;
     final h = image.height;
     final blurred = image.blurred();
@@ -107,11 +150,11 @@ class CoverDetector {
       // ones, without the smooth background gradients a low threshold lets in.
       _canny(blurred, magnitude, config),
     ];
-    final candidates = <_Candidate>[];
+    final quads = <Quad>[];
     for (final raw in edgeMaps) {
       final edges = _dilate(raw, w, h);
-      candidates
-        ..addAll(_quadsFromRegions(edges, edges, w, h))
+      quads
+        ..addAll(_quadsFromRegions(edges, edges, w, h).map((c) => c.quad))
         // Closed outlines filled in, with thin lines (table seams, cables,
         // neighbouring sleeves) that touch the cover removed by an opening.
         ..addAll(
@@ -120,10 +163,132 @@ class CoverDetector {
             edges,
             w,
             h,
-          ),
+          ).map((c) => c.quad),
         );
     }
-    return _suppress(candidates, w, h);
+
+    // Regions fail when a cover touches other edges (hands, clothes, a
+    // crate), so also build outlines from straight lines, which tolerate
+    // gaps where fingers cover a side.
+    final gradients = Gradients.of(blurred);
+    final canny = edgeMaps.last;
+    final minSide = math.sqrt(config.minArea * w * h);
+    final lines = houghLines(
+      canny,
+      gradients,
+      minVotes: math.max(12, (0.35 * minSide).round()),
+    );
+    quads.addAll(quadsFromLines(lines, w, h, minSeparation: 0.8 * minSide));
+
+    // Every candidate, whichever way it was found, is judged the same way.
+    final support = Uint8List(w * h);
+    final strong = edgeMaps[edgeMaps.length > 2 ? 1 : 0];
+    for (var i = 0; i < support.length; i++) {
+      support[i] = canny[i] | strong[i];
+    }
+    final priorQuads = [
+      for (final p in priors) p.scale(w.toDouble(), h.toDouble()),
+    ];
+    final candidates = <_Candidate>[
+      for (final quad in quads)
+        ?_score(quad, support, gradients, priorQuads, w, h),
+    ];
+    return _suppress(candidates, priorQuads, blurred);
+  }
+
+  /// Checks shape and edge support of [quad] and scores it, or returns
+  /// null when it does not look like a cover.
+  _Candidate? _score(
+    Quad quad,
+    Uint8List edges,
+    Gradients gradients,
+    List<Quad> priors,
+    int width,
+    int height,
+  ) {
+    final area = quad.area;
+    final frameArea = width * height.toDouble();
+    if (area < config.minArea * frameArea ||
+        area > config.maxArea * frameArea) {
+      return null;
+    }
+    final aspect = quad.aspectRatio;
+    if (aspect < config.minAspect || aspect > config.maxAspect) return null;
+    if (quad.angles.any((a) => a < config.minAngle || a > config.maxAngle)) {
+      return null;
+    }
+    // A side running along the frame edge is the end of the image, not the
+    // edge of a sleeve: the sleeve is cut off there. It is judged on its
+    // other three sides, which must then all be clear.
+    var borderSides = 0;
+    final sides = <double>[];
+    final extensions = <double>[];
+    for (var i = 0; i < 4; i++) {
+      final a = quad.corners[i];
+      final b = quad.corners[(i + 1) % 4];
+      if (_alongFrameEdge(a, b, width, height)) {
+        borderSides++;
+        continue;
+      }
+      sides.add(orientedSupport(a, b, edges, gradients));
+      // A sleeve's edge stops at its corners. Shelves, spines, table seams
+      // and the like run on past them.
+      final step = (b - a) * config.extensionLength;
+      for (final (from, to) in [(b, b + step), (a, a - step)]) {
+        // Past the frame edge there is nothing to see: measure what is left
+        // in view, and skip ends too close to the edge to tell.
+        final end = _clipToFrame(from, to, width, height);
+        if (end.distanceTo(from) >= 4) {
+          extensions.add(
+            orientedSupport(from, end, edges, gradients, samples: 10),
+          );
+        }
+      }
+    }
+    if (borderSides > 1) return null;
+    final sorted = [...sides]..sort();
+    final mean = sides.reduce((a, b) => a + b) / sides.length;
+    if (borderSides == 1) {
+      if (sorted[0] < config.minBorderCutSide ||
+          mean < config.minOrientedMean) {
+        return null;
+      }
+      // One side may be mostly hidden by a hand; the other three may not.
+    } else if (sorted[1] < config.minOrientedSide ||
+        mean < config.minOrientedMean) {
+      return null;
+    }
+    final extended = extensions.isEmpty
+        ? 0.0
+        : extensions.reduce((a, b) => a + b) / extensions.length;
+    // One or two corner ends may line up with a table edge or a
+    // neighbouring sleeve; lines running on past three or more mean a shape
+    // cut out of longer lines (a shelf, spines and a sleeve's top edge).
+    final runOn = extensions.where((e) => e >= config.strongExtension).length;
+    if (runOn >= 3 || extended > config.maxExtension) return null;
+    // Covers are square: the further from 1:1, the less likely.
+    final squareness =
+        1 - 0.5 * (math.log(aspect).abs() / math.log(config.maxAspect));
+    // Between an artwork frame and the sleeve around it, prefer the sleeve.
+    final size = 0.8 + 0.2 * math.sqrt(area / frameArea);
+    final fit = mean * squareness * size * (1 - extended);
+    var quality = fit;
+    for (final prior in priors) {
+      final s = prior.sides;
+      final side = (s[0] + s[1] + s[2] + s[3]) / 4;
+      final distance = prior.meanCornerDistance(quad) / side;
+      final closeness = 1 - distance / 0.12;
+      if (closeness > 0) {
+        quality = math.max(quality, fit * (1 + config.priorBonus * closeness));
+      }
+    }
+    return _Candidate(
+      quad,
+      mean,
+      quality,
+      borderSides: borderSides,
+      touchesBorder: _touchesBorder(quad, width, height),
+    );
   }
 
   /// Turns each 8-connected region of [mask] into a quad candidate, checked
@@ -279,9 +444,11 @@ class CoverDetector {
   /// better one, and normalises the corners.
   List<CoverDetection> _suppress(
     List<_Candidate> candidates,
-    int width,
-    int height,
+    List<Quad> priors,
+    GrayImage image,
   ) {
+    final width = image.width;
+    final height = image.height;
     // The same cover is usually found by several edge maps. Keep the
     // best-fitting outline of each near-duplicate group: a looser one may
     // have picked up a table seam along one side.
@@ -296,50 +463,243 @@ class CoverDetector {
     }
     candidates = distinct;
 
-    candidates.sort((a, b) {
-      // Prefer bigger outlines: inner artwork frames are smaller than the
-      // cover around them. Edge support breaks ties.
-      final byArea = b.quad.area.compareTo(a.quad.area);
-      return byArea != 0 ? byArea : b.support.compareTo(a.support);
-    });
+    // Best score first. Scores already prefer the sleeve over the artwork
+    // inside it, and a tracked cover over a new shape around it.
+    //
+    // A shape sharing a side with a cover, on the far side of it, borrows
+    // that cover's edge: a sleeve held below a face, with the wardrobe or
+    // shelf behind, closes a square above it. Of the two, the one with
+    // fewer sides along the frame edge is the cover; tracked covers count
+    // too, for frames where the sleeve is missed.
+    final tracked = [
+      for (final p in priors)
+        _Candidate(p, 0, 0, borderSides: _borderSides(p, width, height)),
+    ];
     final kept = <_Candidate>[];
     for (final candidate in candidates) {
+      if ([...kept, ...tracked].any(candidate.borrowsFrom)) continue;
+      // Outlines built on this candidate's edge give way to it, whichever
+      // was ranked first.
+      final displaced = kept.where((k) => k.borrowsFrom(candidate)).toList();
       final overlaps = kept.any(
         (k) =>
-            k.quad.contains(candidate.quad.centroid) ||
-            candidate.quad.contains(k.quad.centroid) ||
-            k.quad.bounds.iou(candidate.quad.bounds) > 0.3,
+            !displaced.contains(k) &&
+            (k.quad.contains(candidate.quad.centroid) ||
+                candidate.quad.contains(k.quad.centroid) ||
+                // Sleeves side by side barely overlap; a shape sharing a large
+                // part of a better one is built from its edges plus clutter.
+                k.quad.bounds.overlapOfSmaller(candidate.quad.bounds) > 0.25),
       );
-      if (!overlaps) kept.add(candidate);
-      if (kept.length == config.maxCovers) break;
+      if (overlaps) continue;
+      // Shelves and crates full of records are squares too, but their
+      // inside is rows of spines: straight lines running right across,
+      // which artwork and lettering rarely are. Checked last, as it is the
+      // slowest test.
+      if (_spines(image, candidate.quad) >= config.maxSpines) continue;
+      kept
+        ..removeWhere(displaced.contains)
+        ..add(candidate);
     }
-    // Corners this close to the frame edge may hide a cut-off cover.
-    final margin = 0.015 * math.max(width, height);
+    // Not capped inside the loop: a lower-ranked cover may still displace a
+    // shape built on its edge.
     return [
-      for (final k in kept)
+      for (final k in kept.take(config.maxCovers))
         CoverDetection(
           k.quad.scale(1 / width, 1 / height),
           k.support,
-          touchesBorder: k.quad.corners.any(
-            (c) =>
-                c.x <= margin ||
-                c.y <= margin ||
-                c.x >= width - 1 - margin ||
-                c.y >= height - 1 - margin,
-          ),
+          touchesBorder: k.touchesBorder,
         ),
     ];
   }
 }
 
+/// Points this close to the frame edge may hide a cut-off cover.
+double _edgeMargin(int width, int height) => 0.015 * math.max(width, height);
+
+bool _alongFrameEdge(Point2 a, Point2 b, int width, int height) {
+  final margin = _edgeMargin(width, height);
+  return (a.x <= margin && b.x <= margin) ||
+      (a.x >= width - 1 - margin && b.x >= width - 1 - margin) ||
+      (a.y <= margin && b.y <= margin) ||
+      (a.y >= height - 1 - margin && b.y >= height - 1 - margin);
+}
+
+int _borderSides(Quad quad, int width, int height) {
+  var count = 0;
+  for (var i = 0; i < 4; i++) {
+    final a = quad.corners[i];
+    final b = quad.corners[(i + 1) % 4];
+    if (_alongFrameEdge(a, b, width, height)) count++;
+  }
+  return count;
+}
+
+bool _touchesBorder(Quad quad, int width, int height) {
+  final margin = _edgeMargin(width, height);
+  return quad.corners.any(
+    (c) =>
+        c.x <= margin ||
+        c.y <= margin ||
+        c.x >= width - 1 - margin ||
+        c.y >= height - 1 - margin,
+  );
+}
+
+/// Whether a side of [a] lies along a side of [b], with the two quads on
+/// opposite sides of it.
+bool _sharesSide(Quad a, Quad b) {
+  final ca = a.centroid;
+  final cb = b.centroid;
+  for (var i = 0; i < 4; i++) {
+    final p = a.corners[i];
+    final q = a.corners[(i + 1) % 4];
+    final length = p.distanceTo(q);
+    if (length == 0) continue;
+    final ux = (q.x - p.x) / length;
+    final uy = (q.y - p.y) / length;
+    double across(Point2 r) => (r.x - p.x) * uy - (r.y - p.y) * ux;
+    double along(Point2 r) => (r.x - p.x) * ux + (r.y - p.y) * uy;
+    if (across(ca) * across(cb) >= 0) continue;
+    final tolerance = math.max(3, 0.06 * length);
+    for (var j = 0; j < 4; j++) {
+      final r = b.corners[j];
+      final s = b.corners[(j + 1) % 4];
+      final ar = along(r);
+      final as = along(s);
+      if ((as - ar).abs() < 1) continue; // across the line, not along it
+      final from = math.max(0.0, math.min(ar, as));
+      final to = math.min(length, math.max(ar, as));
+      if (to - from < 0.5 * math.min(length, r.distanceTo(s))) continue;
+      // Compare the two sides where they overlap: a longer side of [b],
+      // slightly tilted, may run off far from [a]'s line beyond the overlap.
+      double gapAt(double t) {
+        final f = (t - ar) / (as - ar);
+        return across(r) + (across(s) - across(r)) * f;
+      }
+
+      if (gapAt(from).abs() <= tolerance && gapAt(to).abs() <= tolerance) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/// The share of the inside of [quad] crossed from side to side by straight
+/// lines parallel to its sides, in whichever direction has more. The middle
+/// 75 % of the outline is resampled to a square grid, so the measure does
+/// not depend on the cover's size or tilt.
+double _spines(GrayImage image, Quad quad) {
+  const n = 48;
+  final toImage = Homography.fromPoints(const [
+    Point2(0, 0),
+    Point2(1, 0),
+    Point2(1, 1),
+    Point2(0, 1),
+  ], quad.corners);
+  if (toImage == null) return 0;
+  final grid = Float64List(n * n);
+  final w = image.width;
+  final h = image.height;
+  final pixels = image.pixels;
+  for (var row = 0; row < n; row++) {
+    for (var col = 0; col < n; col++) {
+      final p = toImage.apply(
+        Point2(0.125 + 0.75 * col / (n - 1), 0.125 + 0.75 * row / (n - 1)),
+      );
+      final x = p.x.clamp(0.0, w - 1.001);
+      final y = p.y.clamp(0.0, h - 1.001);
+      final x0 = x.floor();
+      final y0 = y.floor();
+      final fx = x - x0;
+      final fy = y - y0;
+      final i = y0 * w + x0;
+      final top = pixels[i] + (pixels[i + 1] - pixels[i]) * fx;
+      final bottom = pixels[i + w] + (pixels[i + w + 1] - pixels[i + w]) * fx;
+      grid[row * n + col] = top + (bottom - top) * fy;
+    }
+  }
+  // Pixels on a strong edge of a vertical or a horizontal line (Sobel).
+  final vertical = Uint8List(n * n);
+  final horizontal = Uint8List(n * n);
+  for (var y = 1; y < n - 1; y++) {
+    for (var x = 1; x < n - 1; x++) {
+      final i = y * n + x;
+      final gx =
+          (grid[i - n + 1] + 2 * grid[i + 1] + grid[i + n + 1]) -
+          (grid[i - n - 1] + 2 * grid[i - 1] + grid[i + n - 1]);
+      final gy =
+          (grid[i + n - 1] + 2 * grid[i + n] + grid[i + n + 1]) -
+          (grid[i - n - 1] + 2 * grid[i - n] + grid[i - n + 1]);
+      if (gx * gx + gy * gy < 40 * 40) continue;
+      if (gx.abs() > 2 * gy.abs()) vertical[i] = 1;
+      if (gy.abs() > 2 * gx.abs()) horizontal[i] = 1;
+    }
+  }
+  // A column (or row) is crossed by a line when, allowing a pixel of
+  // wobble, most of it lies on such an edge.
+  var columns = 0;
+  var rows = 0;
+  for (var a = 1; a < n - 1; a++) {
+    var down = 0;
+    var across = 0;
+    for (var b = 1; b < n - 1; b++) {
+      final v = b * n + a;
+      if (vertical[v] | vertical[v - 1] | vertical[v + 1] != 0) down++;
+      final hz = a * n + b;
+      if (horizontal[hz] | horizontal[hz - n] | horizontal[hz + n] != 0) {
+        across++;
+      }
+    }
+    if (down > 0.6 * (n - 2)) columns++;
+    if (across > 0.6 * (n - 2)) rows++;
+  }
+  return math.max(columns, rows) / (n - 2);
+}
+
+/// The point where the segment from [from] (inside the frame) to [to]
+/// leaves the frame, or [to] when it stays inside.
+Point2 _clipToFrame(Point2 from, Point2 to, int width, int height) {
+  var t = 1.0;
+  final d = to - from;
+  void limit(double start, double delta, double max) {
+    if (delta > 0 && start + delta > max) {
+      t = math.min(t, (max - start) / delta);
+    }
+    if (delta < 0 && start + delta < 0) {
+      t = math.min(t, -start / delta);
+    }
+  }
+
+  limit(from.x, d.x, width - 1.0);
+  limit(from.y, d.y, height - 1.0);
+  return from + d * math.max(0, t);
+}
+
 class _Candidate {
-  const _Candidate(this.quad, this.support, this.quality);
+  const _Candidate(
+    this.quad,
+    this.support,
+    this.quality, {
+    this.borderSides = 0,
+    this.touchesBorder = false,
+  });
 
   final Quad quad;
   final double support;
 
   /// Edge support times fill: how well the quad fits its region.
   final double quality;
+
+  /// Sides lying along the frame edge, and whether a corner is near it.
+  final int borderSides;
+  final bool touchesBorder;
+
+  /// Whether this outline is built on a side of [other], which has fewer
+  /// sides along the frame edge. A corner merely near the edge does not
+  /// count: a sleeve held close to the camera is whole but reaches it.
+  bool borrowsFrom(_Candidate other) =>
+      borderSides > other.borderSides && _sharesSide(quad, other.quad);
 }
 
 int _percentile(Uint16List values, double fraction) {

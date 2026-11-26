@@ -112,6 +112,48 @@ void main() {
       expect(still.expand((r) => r.captures), hasLength(1));
     });
 
+    test('captures again when another sleeve takes the same spot', () {
+      final analyzer = FrameAnalyzer();
+      final first = toFrame(coverScene());
+      final second = toFrame(coverScene(artwork: darkArtwork));
+
+      final results = [
+        for (var i = 0; i < 5; i++) analyzer.analyze(first),
+        for (var i = 0; i < 6; i++) analyzer.analyze(second),
+      ];
+
+      final captures = results.expand((r) => r.captures).toList();
+      expect(captures, hasLength(2));
+      expect(
+        hammingDistance(captures[0].hash, captures[1].hash),
+        greaterThan(16),
+      );
+    });
+
+    test('a hand passing over a captured sleeve does not recapture it', () {
+      final analyzer = FrameAnalyzer();
+      GrayImage withHand(int left) {
+        final scene = coverScene();
+        for (var y = 70; y < 190; y++) {
+          for (var x = left; x < left + 85; x++) {
+            scene.pixels[y * scene.width + x] = 230;
+          }
+        }
+        return scene;
+      }
+
+      final results = [
+        for (var i = 0; i < 4; i++) analyzer.analyze(toFrame(coverScene())),
+        // The hand moves across the sleeve, so the artwork never settles.
+        analyzer.analyze(toFrame(withHand(95))),
+        analyzer.analyze(toFrame(withHand(125))),
+        analyzer.analyze(toFrame(withHand(140))),
+        for (var i = 0; i < 4; i++) analyzer.analyze(toFrame(coverScene())),
+      ];
+
+      expect(results.expand((r) => r.captures), hasLength(1));
+    });
+
     test('sends the sharpest view seen so far', () {
       final analyzer = FrameAnalyzer();
       final sharp = coverScene();

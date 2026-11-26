@@ -52,6 +52,15 @@ class Box {
     final shared = overlap.area;
     return shared / (area + other.area - shared);
   }
+
+  /// Shared area over the area of the smaller box.
+  double overlapOfSmaller(Box other) {
+    final w = math.min(right, other.right) - math.max(left, other.left);
+    final h = math.min(bottom, other.bottom) - math.max(top, other.top);
+    if (w <= 0 || h <= 0) return 0;
+    final smaller = math.min(area, other.area);
+    return smaller <= 0 ? 0 : w * h / smaller;
+  }
 }
 
 /// A convex quadrilateral with corners in clockwise order starting at the
@@ -117,18 +126,42 @@ class Quad {
       Quad([for (final c in corners) transform(c)]);
 
   /// Linear blend towards [other]; `t = 1` returns [other].
-  Quad lerp(Quad other, double t) => Quad([
-    for (var i = 0; i < 4; i++)
-      corners[i] + (other.corners[i] - corners[i]) * t,
-  ]);
+  ///
+  /// Corners are paired with the closest rotation of [other]'s corners:
+  /// near a 45-degree tilt, which corner counts as top-left can change
+  /// between frames.
+  Quad lerp(Quad other, double t) {
+    final s = _shiftTo(other);
+    return Quad([
+      for (var i = 0; i < 4; i++)
+        corners[i] + (other.corners[(i + s) % 4] - corners[i]) * t,
+    ]);
+  }
 
-  /// Mean corner distance to [other].
-  double meanCornerDistance(Quad other) {
+  /// Mean corner distance to [other], pairing corners as [lerp] does.
+  double meanCornerDistance(Quad other) => _distance(other, _shiftTo(other));
+
+  double _distance(Quad other, int shift) {
     var total = 0.0;
     for (var i = 0; i < 4; i++) {
-      total += corners[i].distanceTo(other.corners[i]);
+      total += corners[i].distanceTo(other.corners[(i + shift) % 4]);
     }
     return total / 4;
+  }
+
+  /// The rotation of [other]'s (clockwise) corners that lines up best with
+  /// these.
+  int _shiftTo(Quad other) {
+    var best = 0;
+    var bestDistance = double.infinity;
+    for (var s = 0; s < 4; s++) {
+      final d = _distance(other, s);
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = s;
+      }
+    }
+    return best;
   }
 
   @override
