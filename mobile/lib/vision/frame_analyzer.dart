@@ -13,6 +13,7 @@ class CoverSnapshot {
     required this.id,
     required this.quad,
     required this.touchesBorder,
+    this.detected = true,
     this.captured = false,
     this.hint,
   });
@@ -20,6 +21,10 @@ class CoverSnapshot {
   final int id;
   final Quad quad;
   final bool touchesBorder;
+
+  /// False while the cover is kept on screen through a missed frame; the
+  /// outline is then the last one seen.
+  final bool detected;
 
   /// True once a view of this cover was sent for recognition.
   final bool captured;
@@ -70,11 +75,17 @@ class FrameAnalyzer {
       rowStride: frame.yRowStride,
       maxSide: analysisSide,
     );
-    final covers = _tracker.update(detector.detect(grey));
+    final detections = detector.detect(
+      grey,
+      // Only shown covers: a shape seen once must not help itself along.
+      priors: [for (final t in _tracker.visible) t.quad],
+    );
+    final covers = _tracker.update(detections);
     final captures = _selector.update(
       frame: frame,
       grey: grey,
-      visible: covers,
+      // Only outlines measured in this frame describe this frame's image.
+      visible: _tracker.detected,
       trackedIds: _tracker.tracks.map((t) => t.id),
     );
     return FrameAnalysis(
@@ -84,6 +95,7 @@ class FrameAnalyzer {
             id: c.id,
             quad: c.quad,
             touchesBorder: c.touchesBorder,
+            detected: c.isDetected,
             captured: _selector.isCaptured(c.id),
             hint: _selector.latest[c.id]?.hint,
           ),

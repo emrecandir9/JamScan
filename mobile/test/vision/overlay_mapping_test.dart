@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'dart:ui';
+
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jamscan/vision/camera_frame.dart';
@@ -10,6 +11,8 @@ import 'package:jamscan/widgets/live_camera_view.dart';
 import 'scene.dart';
 
 void main() {
+  _overlayTests();
+
   test('sensor coordinates rotate into the upright preview', () {
     // On a 90-degree back camera, the sensor's top-left is the preview's
     // top-right.
@@ -100,10 +103,13 @@ void main() {
 
     final first = analyzer.analyze(frame);
     final second = analyzer.analyze(frame);
+    final third = analyzer.analyze(frame);
 
-    expect(first.covers, hasLength(1));
-    expect(second.covers.single.id, first.covers.single.id);
-    final box = second.covers.single.quad.bounds;
+    // A cover is outlined once it was found in two frames.
+    expect(first.covers, isEmpty);
+    expect(second.covers, hasLength(1));
+    expect(third.covers.single.id, second.covers.single.id);
+    final box = third.covers.single.quad.bounds;
     expect(box.left, closeTo(200 / 640, 0.02));
     expect(box.top, closeTo(120 / 480, 0.02));
     expect(box.right, closeTo(440 / 640, 0.02));
@@ -113,5 +119,73 @@ void main() {
       frame.lumaAt(10, 10),
       frame.lumaAt(10, 10),
     ));
+  });
+}
+
+CoverSnapshot _cover(double left, {bool detected = true}) => CoverSnapshot(
+  id: 1,
+  quad: Quad([
+    Point2(left, 0.2),
+    Point2(left + 0.4, 0.2),
+    Point2(left + 0.4, 0.6),
+    Point2(left, 0.6),
+  ]),
+  touchesBorder: false,
+  detected: detected,
+);
+
+CoverOverlayPainter _painter(WidgetTester tester) {
+  final paint = tester.widget<CustomPaint>(
+    find.descendant(
+      of: find.byType(AnimatedCoverOverlay),
+      matching: find.byType(CustomPaint),
+    ),
+  );
+  return paint.painter! as CoverOverlayPainter;
+}
+
+Widget _overlay(List<CoverSnapshot> covers) => Directionality(
+  textDirection: TextDirection.ltr,
+  child: AnimatedCoverOverlay(
+    covers: covers,
+    sensorDegrees: 0,
+    previewAspect: 1,
+  ),
+);
+
+void _overlayTests() {
+  testWidgets('outlines fade in and glide to new positions', (tester) async {
+    await tester.pumpWidget(_overlay([_cover(0.1)]));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(_painter(tester).opacities[1], lessThan(0.5));
+
+    await tester.pumpAndSettle();
+    expect(_painter(tester).opacities[1], closeTo(1, 0.02));
+
+    // The next analysed frame moves the cover: the outline follows over a
+    // few screen frames rather than jumping.
+    await tester.pumpWidget(_overlay([_cover(0.3)]));
+    await tester.pump(const Duration(milliseconds: 16));
+    final x = _painter(tester).covers.single.quad.topLeft.x;
+    expect(x, greaterThan(0.1));
+    expect(x, lessThan(0.25));
+
+    await tester.pumpAndSettle();
+    expect(_painter(tester).covers.single.quad.topLeft.x, closeTo(0.3, 1e-3));
+  });
+
+  testWidgets('kept outlines dim, lost ones fade out', (tester) async {
+    await tester.pumpWidget(_overlay([_cover(0.1)]));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(_overlay([_cover(0.1, detected: false)]));
+    await tester.pumpAndSettle();
+    expect(_painter(tester).opacities[1], closeTo(0.55, 0.02));
+
+    await tester.pumpWidget(_overlay(const []));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(_painter(tester).covers, hasLength(1));
+    await tester.pumpAndSettle();
+    expect(_painter(tester).covers, isEmpty);
   });
 }
